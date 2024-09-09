@@ -1,0 +1,132 @@
+
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Best Brightness</ion-title>
+    <ion-buttons slot="end">
+      <ion-button href="/signup">Join us</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Hero Section with fading images -->
+  <div class="hero-section">
+    <img src="assets/slide1.png" class="fade-image active" />
+    <img src="assets/slide2.jpg" class="fade-image" />
+    <img src="assets/slide3.png" class="fade-image" />
+    <img src="assets/slide4.jpg" class="fade-image" />
+    <img src="assets/slide5.jpg" class="fade-image" />
+  </div>
+
+  <!-- Info Cards Section (3x3 grid, manually created) -->
+  <ion-grid class="info-cards">
+    <ion-row>
+      <ion-col size="4">
+        <ion-card>
+          <ion-icon name="bulb-outline"></ion-icon>
+          <ion-card-title>Quality Lighting</ion-card-title>
+          <ion-card-content>
+            Best Brightness offers top-notch lighting solutions for any environment.
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col size="4">
+        <ion-card>
+          <ion-icon name="speedometer-outline"></ion-icon>
+          <ion-card-title>Energy Efficiency</ion-card-title>
+          <ion-card-content>
+            Our products are designed to consume less power and save energy.
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col size="4">
+        <ion-card>
+          <ion-icon name="sunny-outline"></ion-icon>
+          <ion-card-title>Natural Light</ion-card-title>
+          <ion-card-content>
+            Experience lighting that mimics the warmth and glow of the sun.
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+    <!-- Add more rows for the remaining 6 cards -->
+  </ion-grid>
+
+  <!-- Milestones Section as Horizontally Scrollable Cards -->
+  <div class="scroll-container">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Founded in 2000</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Best Brightness was established in 2000 with the aim of delivering top-tier lighting solutions.
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>100,000+ Customers</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        We have successfully served over 100,000 satisfied customers worldwide.
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Energy Efficient Products</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Since 2010, we've launched products that consume 50% less energy on average.
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Global Presence</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        We now operate in over 30 countries with a dedicated team in each region.
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Other Info Section -->
+  <div class="other-info">
+    <h2>Additional Information</h2>
+    <p>Relevant information about Best Brightness goes here...</p>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-info">
+      <h2>About Best Brightness</h2>
+    </div>
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+  </footer>
+
+  <script>
+    import { defineComponent } from 'vue';
+    import { IonContent, IonPage, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon } from '@ionic/vue';
+  
+    export default defineComponent({
+      components: {
+        IonContent,
+        IonPage,
+        IonGrid,
+        IonRow,
+        IonCol,
+        IonCard,
+        IonCardContent,
+        IonCardHeader,
+        IonCardTitle,
+        IonIcon
+      }
+    });
+  </script>
+  
+</ion-content>

@@ -1,0 +1,47 @@
+/* Add your global CSS here for colors, headers, and footers */
+.hero-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  background-color: var(--primary-color);
+  position: relative;
+}
+
+.fade-image {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.fade-image.active {
+  opacity: 1;
+}
+
+.info-cards {
+  padding: 20px;
+}
+
+.scroll-container {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px;
+}
+
+.scroll-container ion-card {
+  flex: 0 0 auto;
+  margin-right: 15px;
+}
+
+.other-info {
+  padding: 20px;
+  background-color: white;
+  color: var(--text-color);
+}
+
+.footer {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
