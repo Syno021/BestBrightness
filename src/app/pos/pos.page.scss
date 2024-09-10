@@ -1,0 +1,29 @@
+.pos-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .header, .footer, .change {
+    background-color: #000080;
+    color: white;
+    padding: 10px;
+  }
+  .main-content {
+    display: flex;
+    flex-grow: 1;
+  }
+  .left-panel, .right-panel {
+    flex: 1;
+    padding: 10px;
+  }
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+  .categories {
+    margin-top: 10px;
+  }
+  .input-fields {
+    margin-bottom: 20px;
+  }
