@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { SignupService } from '../signup.service';
-import { AlertController } from '@ionic/angular';
-import { HttpErrorResponse } from '@angular/common/http';
+import { AlertController, ToastController } from '@ionic/angular';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-signup',
@@ -9,8 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrls: ['./signup.page.scss'],
 })
 export class SignupPage implements OnInit {
-  isRegister = false;  // Toggle between registration and login
-
+  isRegister = false;
   userData = {
     name: '',
     surname: '',
@@ -20,51 +18,87 @@ export class SignupPage implements OnInit {
     confirmPassword: ''
   };
 
-  constructor(private signUpService: SignupService, private alertController: AlertController) { }
+  constructor(
+    private http: HttpClient,
+    private alertController: AlertController,
+    private toastController: ToastController
+  ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    // Initialize any necessary data or perform any required setup
+  }
 
   async submitForm() {
-    try {
-      if (this.isRegister) {
-        console.log('Attempting registration...');
-        const response = await this.signUpService.register(this.userData).toPromise();
-        console.log('Registration successful:', response);  // Log success response
-        await this.showAlert('Success', 'Registration successful!');
-      } else {
-        console.log('Attempting login...');
-        const response = await this.signUpService.login(this.userData).toPromise();
-        console.log('Login successful:', response);  // Log success response
-        await this.showAlert('Success', 'Login successful!');
+    if (this.isRegister) {
+      if (!this.validateForm()) {
+        return;
       }
-    } catch (error: unknown) {
-      // Type narrowing: identify if it's an error or ProgressEvent
-      console.error('Error during form submission:', error);  // Log error
-  
-      let errorMessage = 'An error occurred';
-  
-      if (error instanceof HttpErrorResponse) {
-        errorMessage = `HTTP Error: ${error.status} - ${error.statusText}`;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (error instanceof ProgressEvent) {
-        errorMessage = 'Network error. Please check the backend server.';
-      } else {
-        errorMessage = 'An unexpected error occurred';
-      }
-  
-      await this.showAlert('Error', errorMessage);
+
+      // Send POST request to PHP API
+      this.http.post('http://localhost/user_api/register.php', this.userData)
+        .subscribe(
+          async (response: any) => {
+            if (response.status === 1) {
+              await this.presentToast('Registration successful', 'success');
+              this.clearFields();
+            } else {
+              await this.presentToast('Registration failed: ' + response.message, 'danger');
+            }
+          },
+          async (error: HttpErrorResponse) => {
+            console.error('Error during registration:', error);
+            await this.presentToast('Error during registration: ' + error.message, 'danger');
+          }
+        );
+    } else {
+      await this.presentToast('Login functionality not implemented yet', 'warning');
     }
   }
-  
 
-  async showAlert(header: string, message: string) {
-    const alert = await this.alertController.create({
-      header: header,
+  validateForm(): boolean {
+    if (!this.userData.name || !this.userData.surname || !this.userData.email || 
+        !this.userData.address || !this.userData.password || !this.userData.confirmPassword) {
+      this.presentToast('All fields are required', 'warning');
+      return false;
+    }
+
+    if (this.userData.password !== this.userData.confirmPassword) {
+      this.presentToast('Passwords do not match', 'danger');
+      return false;
+    }
+
+    if (this.userData.password.length < 8) {
+      this.presentToast('Password must be at least 8 characters long', 'warning');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.userData.email)) {
+      this.presentToast('Invalid email format', 'warning');
+      return false;
+    }
+
+    return true;
+  }
+
+  async presentToast(message: string, color: 'success' | 'warning' | 'danger') {
+    const toast = await this.toastController.create({
       message: message,
-      buttons: ['OK']
+      duration: 2000,
+      color: color,
+      position: 'bottom'
     });
+    toast.present();
+  }
 
-    await alert.present();
+  clearFields() {
+    this.userData = {
+      name: '',
+      surname: '',
+      email: '',
+      address: '',
+      password: '',
+      confirmPassword: ''
+    };
   }
 }

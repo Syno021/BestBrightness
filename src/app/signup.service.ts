@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class SignupService {
 
-  private apiUrl = 'http://localhost:3000';  // Make sure this URL is correct
+  private apiUrl = 'http://localhost/register.php';  // Make sure this URL is correct
 
   constructor(private http: HttpClient) { }
 

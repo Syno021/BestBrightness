@@ -1,5 +1,5 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-title>Admin Inventory Management</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -14,26 +14,27 @@
 
   <!-- Main Content -->
   <ion-content>
-    <!-- Search Bar -->
-    <ion-searchbar placeholder="Search inventory items"></ion-searchbar>
-
-    <!-- Filter Options -->
-    <ion-item>
-      <ion-label>Filter By</ion-label>
-      <ion-select placeholder="Select Filter">
-        <ion-select-option value="category">Category</ion-select-option>
-        <ion-select-option value="status">Status</ion-select-option>
-        <!-- Add more filters as needed -->
-      </ion-select>
-    </ion-item>
+    <!-- Search and Filter -->
+    <ion-card class="custom-card">
+      <ion-card-content>
+        <ion-searchbar placeholder="Search inventory items"></ion-searchbar>
+        <ion-item>
+          <ion-label>Filter By</ion-label>
+          <ion-select placeholder="Select Filter">
+            <ion-select-option value="category">Category</ion-select-option>
+            <ion-select-option value="status">Status</ion-select-option>
+            <ion-select-option value="stock">Stock Level</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
 
     <!-- Inventory List -->
-    <ion-card>
+    <ion-card class="custom-card">
       <ion-card-header>
         <ion-card-title>Inventory List</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        <!-- Sample table layout for inventory list -->
         <ion-grid>
           <ion-row>
             <ion-col>Item ID</ion-col>
@@ -43,16 +44,15 @@
             <ion-col>Stock</ion-col>
             <ion-col>Actions</ion-col>
           </ion-row>
-          <!-- Add inventory rows here -->
           <ion-row>
             <ion-col>101</ion-col>
             <ion-col>Widget A</ion-col>
             <ion-col>Category 1</ion-col>
             <ion-col>Available</ion-col>
-            <ion-col>50</ion-col>
+            <ion-col><span class="stock-status stock-medium">50</span></ion-col>
             <ion-col>
-              <ion-button color="primary">Edit</ion-button>
-              <ion-button color="danger">Delete</ion-button>
+              <ion-button size="small" color="primary">Edit</ion-button>
+              <ion-button size="small" color="danger">Delete</ion-button>
             </ion-col>
           </ion-row>
           <!-- More rows as needed -->
@@ -60,11 +60,97 @@
       </ion-card-content>
     </ion-card>
 
+    <!-- Add/Update Stock -->
+    <ion-card class="custom-card">
+      <ion-card-header>
+        <ion-card-title>Add/Update Stock</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Item ID</ion-label>
+          <ion-input type="number"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Quantity to Add/Remove</ion-label>
+          <ion-input type="number"></ion-input>
+        </ion-item>
+        <ion-button expand="block" color="primary" margin-top>Update Stock</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Low Stock Alerts -->
+    <ion-card class="custom-card">
+      <ion-card-header>
+        <ion-card-title>Low Stock Alerts</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="alert">
+          <p><strong>Low Stock Alert:</strong> The following items are running low:</p>
+          <ul>
+            <li>Widget B (ID: 102) - Current Stock: <span class="stock-status stock-low">5</span></li>
+            <li>Gadget X (ID: 205) - Current Stock: <span class="stock-status stock-low">3</span></li>
+          </ul>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- View Slow/Fast Moving Items -->
+    <ion-card class="custom-card">
+      <ion-card-header>
+        <ion-card-title>Slow/Fast Moving Items</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-segment value="fast">
+          <ion-segment-button value="fast">
+            <ion-label>Fast Moving</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="slow">
+            <ion-label>Slow Moving</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+        <ion-list>
+          <ion-item>
+            <ion-label>Widget A</ion-label>
+            <ion-note slot="end">Sales: 100 units/month</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Gadget Y</ion-label>
+            <ion-note slot="end">Sales: 80 units/month</ion-note>
+          </ion-item>
+          <!-- More items as needed -->
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Generate Purchase Orders -->
+    <ion-card class="custom-card">
+      <ion-card-header>
+        <ion-card-title>Generate Purchase Orders</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Supplier</ion-label>
+          <ion-select placeholder="Select Supplier">
+            <ion-select-option value="supplier1">Supplier 1</ion-select-option>
+            <ion-select-option value="supplier2">Supplier 2</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Items</ion-label>
+          <ion-select multiple="true" placeholder="Select Items">
+            <ion-select-option value="101">Widget A</ion-select-option>
+            <ion-select-option value="102">Widget B</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-button expand="block" color="secondary" margin-top>Generate PO</ion-button>
+      </ion-card-content>
+    </ion-card>
+
     <!-- Action Buttons -->
     <ion-footer>
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button expand="full" color="success">Add New Item</ion-button>
+          <ion-button color="success">Add New Item</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
