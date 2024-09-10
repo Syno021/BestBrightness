@@ -27,3 +27,16 @@
   .input-fields {
     margin-bottom: 20px;
   }
+  .receipt-alert {
+    --max-width: 90%;
+    --width: 350px;
+  }
+  
+  .receipt-alert .alert-wrapper {
+    max-width: 350px;
+  }
+  
+  .receipt-alert .alert-message {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
