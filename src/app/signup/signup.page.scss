@@ -1,12 +1,18 @@
+ion-content.body {
+  position: relative;
+  height: 100vh; /* Ensure the content takes up the full height of the viewport */
+ // --background: var(--secondary-color); /* Background color */
+}
+
 ion-card {
-    --background: #000;
-    --color: #9efff0;
-  }
-  
-  ion-card-title {
-    --color: #52ffe4;
-  }
-  
-  ion-card-subtitle {
-    --color: #d1fff8;
-  }
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the card */
+  width: 300px; /* Default width */
+  transition: width 0.3s ease; /* Smooth transition when toggling */
+}
+
+ion-card.expand {
+  width: 500px; /* Expanded width for register form */
+}

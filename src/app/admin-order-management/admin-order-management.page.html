@@ -1,13 +1,73 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>admin-order-management</ion-title>
+    <ion-title>Admin Order Management</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <!-- Collapsible Header -->
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">admin-order-management</ion-title>
+      <ion-title size="large">Admin Order Management</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <!-- Main Content -->
+  <ion-content>
+    <!-- Search Bar -->
+    <ion-searchbar placeholder="Search orders"></ion-searchbar>
+
+    <!-- Filter Options -->
+    <ion-item>
+      <ion-label>Filter By</ion-label>
+      <ion-select placeholder="Select Filter">
+        <ion-select-option value="status">Status</ion-select-option>
+        <ion-select-option value="date">Date</ion-select-option>
+        <!-- Add more filters as needed -->
+      </ion-select>
+    </ion-item>
+
+    <!-- Order List -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Order List</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Sample table layout for orders -->
+        <ion-grid>
+          <ion-row>
+            <ion-col>Order ID</ion-col>
+            <ion-col>Customer</ion-col>
+            <ion-col>Date</ion-col>
+            <ion-col>Status</ion-col>
+            <ion-col>Total</ion-col>
+            <ion-col>Actions</ion-col>
+          </ion-row>
+          <!-- Add order rows here -->
+          <ion-row>
+            <ion-col>2023-001</ion-col>
+            <ion-col>Jane Doe</ion-col>
+            <ion-col>2023-09-15</ion-col>
+            <ion-col>Shipped</ion-col>
+            <ion-col>$123.45</ion-col>
+            <ion-col>
+              <ion-button color="primary">View Details</ion-button>
+              <ion-button color="success">Update Status</ion-button>
+              <ion-button color="danger">Cancel Order</ion-button>
+            </ion-col>
+          </ion-row>
+          <!-- More rows as needed -->
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Action Buttons -->
+    <ion-footer>
+      <ion-toolbar>
+        <ion-buttons slot="end">
+          <ion-button expand="full" color="primary">Generate Report</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  </ion-content>
 </ion-content>

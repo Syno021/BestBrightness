@@ -1,13 +1,105 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>admin-dashboard</ion-title>
+    <ion-title>Admin Dashboard</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <!-- Collapsible Header -->
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">admin-dashboard</ion-title>
+      <ion-title size="large">Admin Dashboard</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <!-- Main Content -->
+  <ion-content>
+    <!-- Dashboard Summary Cards -->
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="6" size-lg="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Total Users</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <h2>1,234</h2>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="6" size-lg="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Sales This Month</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <h2>$5,678</h2>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="6" size-lg="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>New Signups</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <h2>45</h2>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="6" size-lg="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Pending Orders</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <h2>12</h2>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <!-- Statistics Charts -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Sales Overview</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Placeholder for chart -->
+        <div style="height: 300px; background: #eaeaea; text-align: center; line-height: 300px;">Chart Here</div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Recent Activity -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Recent Activity</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item>
+            <ion-label>Order #1234 shipped</ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-label>New user registered: John Doe</ion-label>
+          </ion-item>
+          <!-- More items as needed -->
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Quick Actions -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Quick Actions</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-button expand="full" color="primary">Manage Users</ion-button>
+        <ion-button expand="full" color="success">View Reports</ion-button>
+        <ion-button expand="full" color="warning">Update Inventory</ion-button>
+        <ion-button expand="full" color="danger">System Settings</ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ion-content>
 </ion-content>

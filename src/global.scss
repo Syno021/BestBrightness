@@ -76,7 +76,7 @@
 
 /* Global colors */
 :root {
-    --background: lightblue;
+    --background: rgb(112, 203, 233);
     --primary-color: #004e92; /* Deep blue */
     --secondary-color: #00b4d8; /* Bright complementary color */
     --text-color: #333; /* Dark text */
@@ -114,7 +114,7 @@
   
   /* Apply background and text color globally */
   ion-content {
-    --background: var(--text-color);;
+    --background: rgb(153, 209, 228);;
     color: var(--text-color);
   }
   

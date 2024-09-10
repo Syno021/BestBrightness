@@ -1,13 +1,109 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>admin-sales-report</ion-title>
+    <ion-title>Admin Sales Report</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <!-- Collapsible Header -->
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">admin-sales-report</ion-title>
+      <ion-title size="large">Admin Sales Report</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <!-- Main Content -->
+  <ion-content>
+    <!-- Date Range Selector -->
+    <ion-item>
+      <ion-label>From</ion-label>
+      <ion-datetime displayFormat="MMM DD, YYYY"></ion-datetime>
+      <ion-label>To</ion-label>
+      <ion-datetime displayFormat="MMM DD, YYYY"></ion-datetime>
+      <ion-button expand="full" color="primary">Apply Date Range</ion-button>
+    </ion-item>
+
+    <!-- Sales Summary Cards -->
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="6" size-lg="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Total Sales</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <h2>$10,234</h2>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="6" size-lg="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Total Orders</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <h2>789</h2>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="6" size-lg="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Average Order Value</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <h2>$12.98</h2>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="6" size-lg="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Top Product</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <h2>Widget X</h2>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <!-- Sales Charts -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Sales Overview</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Placeholder for chart -->
+        <div style="height: 300px; background: #eaeaea; text-align: center; line-height: 300px;">Chart Here</div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Sales Table (if needed) -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Sales Records</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Sample table layout for sales records -->
+        <ion-grid>
+          <ion-row>
+            <ion-col>Date</ion-col>
+            <ion-col>Order ID</ion-col>
+            <ion-col>Customer</ion-col>
+            <ion-col>Amount</ion-col>
+          </ion-row>
+          <!-- Add sales record rows here -->
+          <ion-row>
+            <ion-col>2023-09-01</ion-col>
+            <ion-col>2023-001</ion-col>
+            <ion-col>Jane Doe</ion-col>
+            <ion-col>$123.45</ion-col>
+          </ion-row>
+          <!-- More rows as needed -->
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+  </ion-content>
 </ion-content>
