@@ -13,7 +13,9 @@
     }
   }
   
-
+  ion-toolbar {
+    --background: var(--ion-color-primary); /* Navbar background color */
+  }
   
   ion-button {
     font-size: 16px;
