@@ -9,7 +9,7 @@
     <ion-toolbar>
       <ion-buttons slot="end">
         <ion-text>{{ currentDate | date:'short' }}</ion-text>
-        <ion-text class="ion-padding-horizontal">Employee: John Doe (ID: 12345)</ion-text>
+        <ion-text class="ion-padding-horizontal">Employee: Nompilo (ID: 12345)</ion-text>
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
@@ -41,6 +41,7 @@
                 </ion-card-header>
                 <ion-card-content>
                   <ion-text>Stock: {{ product.stock }}</ion-text>
+                  <br>
                   <ion-text>Barcode: {{ product.barcode }}</ion-text>
                   <ion-button expand="block" (click)="addToCart(product)">Add to Cart</ion-button>
                 </ion-card-content>

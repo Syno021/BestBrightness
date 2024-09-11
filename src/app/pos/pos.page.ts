@@ -8,6 +8,7 @@ interface Product {
   image: string;
   barcode: string;
   category: string;
+  quantity?: number; // Optional field for quantity when added to the cart
 }
 
 @Component({
@@ -45,8 +46,8 @@ export class POSPage implements OnInit {
 
   searchProducts(event: any) {
     const searchTerm = event.target.value.toLowerCase();
-    this.products = this.allProducts.filter(product => 
-      product.name.toLowerCase().includes(searchTerm) || 
+    this.products = this.allProducts.filter(product =>
+      product.name.toLowerCase().includes(searchTerm) ||
       product.barcode.includes(searchTerm)
     );
   }
@@ -56,18 +57,43 @@ export class POSPage implements OnInit {
   }
 
   addToCart(product: Product) {
-    this.cart.push({...product});
+    const cartItem = this.cart.find(item => item.barcode === product.barcode);
+
+    if (cartItem) {
+      if (cartItem.quantity! < product.stock) {
+        cartItem.quantity!++;
+      } else {
+        this.alertController.create({
+          header: 'Out of Stock',
+          message: 'Not enough stock available.',
+          buttons: ['OK']
+        }).then(alert => alert.present());
+      }
+    } else {
+      if (product.stock > 0) {
+        this.cart.push({ ...product, quantity: 1 });
+      } else {
+        this.alertController.create({
+          header: 'Out of Stock',
+          message: 'Product is out of stock.',
+          buttons: ['OK']
+        }).then(alert => alert.present());
+      }
+    }
   }
 
   removeFromCart(item: Product) {
-    const index = this.cart.indexOf(item);
-    if (index > -1) {
-      this.cart.splice(index, 1);
+    const cartItem = this.cart.find(cartProd => cartProd.barcode === item.barcode);
+
+    if (cartItem && cartItem.quantity! > 1) {
+      cartItem.quantity!--;
+    } else {
+      this.cart = this.cart.filter(cartProd => cartProd.barcode !== item.barcode);
     }
   }
 
   getSubtotal() {
-    return this.cart.reduce((total, item) => total + item.price, 0);
+    return this.cart.reduce((total, item) => total + (item.price * item.quantity!), 0);
   }
 
   getTax() {
@@ -113,14 +139,20 @@ export class POSPage implements OnInit {
     await alert.present();
   }
 
-  async completeTransaction() {
-    const alert = await this.alertController.create({
+  completeTransaction() {
+    this.cart.forEach(item => {
+      const product = this.allProducts.find(p => p.barcode === item.barcode);
+      if (product) {
+        product.stock -= item.quantity!;
+      }
+    });
+
+    this.alertController.create({
       header: 'Transaction Complete',
       message: 'Thank you for your purchase!',
       buttons: ['OK']
-    });
+    }).then(alert => alert.present());
 
-    await alert.present();
     this.isCheckoutComplete = true;
     this.cart = []; // Clear the cart
     this.paymentType = ''; // Reset payment type
@@ -141,7 +173,7 @@ export class POSPage implements OnInit {
     }
   }
 
-  async printReceipt() {
+async printReceipt() {
     if (!this.isCheckoutComplete) {
       const alert = await this.alertController.create({
         header: 'Cannot Print Receipt',
@@ -151,56 +183,59 @@ export class POSPage implements OnInit {
       await alert.present();
       return;
     }
-  
-    // Store header and info
-    let receiptContent = '******************************\n';
-    receiptContent += '      BEST BRIGHTNESS STORE\n';
-    receiptContent += '  123 Main St, City, Country\n';
-    receiptContent += '      Tel: (555) 123-4567\n';
-    receiptContent += '******************************\n\n';
-  
-    receiptContent += 'Date: ' + new Date().toLocaleString() + '\n';
-    receiptContent += 'Cashier: John Doe (ID: 12345)\n';
-    receiptContent += '------------------------------\n';
-    receiptContent += 'Item                Qty   Price\n';
-    receiptContent += '------------------------------\n';
-  
-    // Format each item with fixed-width style for alignment
+
+    const formatLine = (left: string, right: string, width: number = 40) => {
+      return left.padEnd(width - right.length) + right;
+    };
+
+    const formatCurrency = (amount: number) => `R${amount.toFixed(2)}`;
+
+    let receiptContent = [
+      'BEST BRIGHTNESS STORE',
+      '123 Main St, City, Country',
+      'Tel: (555) 123-4567',
+      '----------------------------------------',
+      `Date: ${new Date().toLocaleString()}`,
+      `Cashier: John Doe (ID: 12345)`,
+      '----------------------------------------',
+      'Item                  Qty         Price',
+      '----------------------------------------',
+    ];
+
     this.cart.forEach(item => {
-      const name = item.name.substring(0, 16).padEnd(16, ' '); // Name truncated to 16 chars max
-      const qty = '1'.padStart(4, ' '); // Right-aligned quantity
-      const price = `R${item.price.toFixed(2)}`.padStart(8, ' '); // Right-aligned price
-      receiptContent += `${name}${qty}${price}\n`;
+      const name = item.name.substring(0, 20).padEnd(20);
+      const qty = item.quantity!.toString().padStart(3);
+      const price = formatCurrency(item.price * item.quantity!).padStart(10);
+      receiptContent.push(`${name} ${qty}    ${price}`);
     });
-  
-    receiptContent += '------------------------------\n';
-    
-    // Subtotal, tax, and total breakdown with right-aligned values
-    const subtotal = `R${this.getSubtotal().toFixed(2)}`.padStart(10, ' ');
-    const tax = `R${this.getTax().toFixed(2)}`.padStart(10, ' ');
-    const total = `R${this.getTotal().toFixed(2)}`.padStart(10, ' ');
-  
-    receiptContent += `Subtotal:         ${subtotal}\n`;
-    receiptContent += `Tax (15%):        ${tax}\n`;
-    receiptContent += '------------------------------\n';
-    receiptContent += `Total:            ${total}\n\n`;
-  
-    receiptContent += 'Payment Method: ' + (this.paymentType === 'cash' ? 'Cash' : 'Credit Card') + '\n';
-    receiptContent += '------------------------------\n';
-    receiptContent += '  THANK YOU FOR SHOPPING WITH US!\n';
-    receiptContent += '******************************';
-  
-    // Display the receipt in a preformatted block for consistent styling
+
+    const subtotal = formatCurrency(this.getSubtotal());
+    const tax = formatCurrency(this.getTax());
+    const total = formatCurrency(this.getTotal());
+
+    receiptContent = receiptContent.concat([
+      '----------------------------------------',
+      formatLine('Subtotal:', subtotal.padStart(14)),
+      formatLine('Tax (15%):', tax.padStart(14)),
+      '----------------------------------------',
+      formatLine('Total:', total.padStart(14)),
+      '',
+      `Payment: ${this.paymentType === 'cash' ? 'Cash' : 'Credit Card'}`,
+      '----------------------------------------',
+      'THANK YOU FOR SHOPPING WITH US!',
+      '****************************************',
+    ]);
+
     const alert = await this.alertController.create({
       header: 'Receipt',
-      message: `<pre>${receiptContent}</pre>`, // Using <pre> to preserve formatting
-      buttons: ['OK']
+      message: `<pre style="font-family: monospace; white-space: pre-wrap; font-size: 14px; line-height: 1.2;">${receiptContent.join('\n')}</pre>`,
+      buttons: ['OK'],
+      cssClass: 'receipt-alert'
     });
-  
+
     await alert.present();
     this.isCheckoutComplete = false; // Reset checkout status after printing
-  }  
-  
+  }
 
   appendToNumpad(value: string) {
     this.barcodeInput += value;
