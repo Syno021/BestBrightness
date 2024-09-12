@@ -1,0 +1,57 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>account</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ng-container *ngIf="!isLoggedIn">
+    <ion-segment (ionChange)="segmentChanged($event)" [value]="segment">
+      <ion-segment-button value="login">
+        <ion-label>Login</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="signup">
+        <ion-label>Sign Up</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <form *ngIf="segment === 'login'" (ngSubmit)="login()">
+      <ion-item>
+        <ion-label position="floating">Email</ion-label>
+        <ion-input type="email" [(ngModel)]="loginForm.email" name="email" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Password</ion-label>
+        <ion-input type="password" [(ngModel)]="loginForm.password" name="password" required></ion-input>
+      </ion-item>
+      <ion-button expand="block" type="submit" class="ion-margin-top">Login</ion-button>
+    </form>
+
+    <form *ngIf="segment === 'signup'" (ngSubmit)="signup()">
+      <ion-item>
+        <ion-label position="floating">Name</ion-label>
+        <ion-input type="text" [(ngModel)]="signupForm.name" name="name" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Email</ion-label>
+        <ion-input type="email" [(ngModel)]="signupForm.email" name="email" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Password</ion-label>
+        <ion-input type="password" [(ngModel)]="signupForm.password" name="password" required></ion-input>
+      </ion-item>
+      <ion-button expand="block" type="submit" class="ion-margin-top">Sign Up</ion-button>
+    </form>
+  </ng-container>
+
+  <ng-container *ngIf="isLoggedIn && currentUser">
+    <h2>Welcome, {{ currentUser.name }}!</h2>
+    <p>Email: {{ currentUser.email }}</p>
+    <ion-button expand="block" (click)="logout()">Logout</ion-button>
+  </ng-container>
+      <!-- <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">account</ion-title>
+    </ion-toolbar>
+  </ion-header> -->
+</ion-content>

@@ -1,0 +1,33 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Promotions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">promotions</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-list>
+    <ion-item *ngFor="let promo of promotions">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>{{ promo.title }}</ion-card-title>
+          <ion-card-subtitle>{{ promo.discount }}% Off</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <p>{{ promo.description }}</p>
+          <p *ngIf="isPromotionValid(promo.endDate)">
+            Days remaining: {{ getDaysRemaining(promo.endDate) }}
+          </p>
+          <p *ngIf="!isPromotionValid(promo.endDate)" class="expired">
+            Expired
+          </p>
+        </ion-card-content>
+      </ion-card>
+    </ion-item>
+  </ion-list>
+</ion-content>

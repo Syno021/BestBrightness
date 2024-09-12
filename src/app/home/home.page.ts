@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AnimationController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
