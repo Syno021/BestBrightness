@@ -64,9 +64,46 @@
     <ion-footer>
       <ion-toolbar>
         <ion-buttons slot="end">
-          <ion-button expand="full" color="success">Add New User</ion-button>
+          <ion-button expand="full" color="success" (click)="presentAddUserModal()">Add New User</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
   </ion-content>
+
+  <!-- Add User Modal -->
+  <ion-modal #addUserModal>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Add New User</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="dismissModal()">Close</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content padding>
+      <ion-item>
+        <ion-label position="floating">First Name</ion-label>
+        <ion-input [(ngModel)]="firstName"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Last Name</ion-label>
+        <ion-input [(ngModel)]="lastName"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Email</ion-label>
+        <ion-input type="email" [(ngModel)]="email"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Role</ion-label>
+        <ion-select [(ngModel)]="role">
+          <ion-select-option *ngFor="let role of roles" [value]="role.value">{{role.label}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-button expand="full" (click)="submitForm()">Add User</ion-button>
+    </ion-content>
+  </ion-modal>
 </ion-content>

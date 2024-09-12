@@ -12,59 +12,55 @@
     </ion-toolbar>
   </ion-header>
 
-  <!-- Main Content -->
-  <ion-content>
-    <!-- Search Bar -->
-    <ion-searchbar placeholder="Search customers"></ion-searchbar>
+  <!-- Search Bar -->
+  <ion-searchbar placeholder="Search customers"></ion-searchbar>
 
-    <!-- Filter Options -->
-    <ion-item>
-      <ion-label>Filter By</ion-label>
-      <ion-select placeholder="Select Filter">
-        <ion-select-option value="status">Status</ion-select-option>
-        <ion-select-option value="date">Date</ion-select-option>
-        <!-- Add more filters as needed -->
-      </ion-select>
-    </ion-item>
+  <!-- Filter Options -->
+  <ion-item>
+    <ion-label>Filter By</ion-label>
+    <ion-select placeholder="Select Filter">
+      <ion-select-option value="status">Status</ion-select-option>
+      <ion-select-option value="date">Date</ion-select-option>
+    </ion-select>
+  </ion-item>
 
-    <!-- Customer List -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Customer List</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <!-- Sample table layout for customer list -->
-        <ion-grid>
-          <ion-row>
-            <ion-col>Customer ID</ion-col>
-            <ion-col>Name</ion-col>
-            <ion-col>Email</ion-col>
-            <ion-col>Status</ion-col>
-            <ion-col>Actions</ion-col>
-          </ion-row>
-          <!-- Add customer rows here -->
-          <ion-row>
-            <ion-col>1</ion-col>
-            <ion-col>John Doe</ion-col>
-            <ion-col></ion-col>
-            <ion-col>Active</ion-col>
-            <ion-col>
-              <ion-button color="primary">Edit</ion-button>
-              <ion-button color="danger">Delete</ion-button>
-            </ion-col>
-          </ion-row>
-          <!-- More rows as needed -->
-        </ion-grid>
-      </ion-card-content>
-    </ion-card>
+  <!-- Customer List -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Customer List</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <!-- Table Layout for Customers -->
+      <ion-grid>
+        <ion-row>
+          <ion-col>Customer ID</ion-col>
+          <ion-col>Name</ion-col>
+          <ion-col>Email</ion-col>
+          <ion-col>Role</ion-col>
+          <ion-col>Actions</ion-col>
+        </ion-row>
 
-    <!-- Action Buttons -->
-    <ion-footer>
-      <ion-toolbar>
-        <ion-buttons slot="end">
-          <ion-button expand="full" color="success">Add New Customer</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-footer>
-  </ion-content>
+        <!-- Add customer rows here -->
+        <ion-row *ngFor="let user of users">
+          <ion-col>{{ user.user_id }}</ion-col>
+          <ion-col>{{ user.first_name }} {{ user.last_name }}</ion-col>
+          <ion-col>{{ user.email }}</ion-col>
+          <ion-col>{{ user.role }}</ion-col>
+          <ion-col>
+            <ion-button color="primary" (click)="editUser(user)">Edit</ion-button>
+            <ion-button color="danger" (click)="deleteUser(user.user_id)">Delete</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Action Buttons -->
+  <ion-footer>
+    <ion-toolbar>
+      <ion-buttons slot="end">
+        <ion-button expand="full" color="success">Add New Customer</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-footer>
 </ion-content>
