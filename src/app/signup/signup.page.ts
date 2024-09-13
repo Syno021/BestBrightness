@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router'; // Import Router
 
 @Component({
   selector: 'app-signup',
@@ -10,18 +11,24 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 export class SignupPage implements OnInit {
   isRegister = false;
   userData = {
-    name: '',
-    surname: '',
+    username: '',
+    first_name: '',
+    last_name: '',
     email: '',
-    address: '',
     password: '',
     confirmPassword: ''
+  };
+
+  loginData = {
+    email: '',
+    password: ''
   };
 
   constructor(
     private http: HttpClient,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private router: Router // Inject Router
   ) {}
 
   ngOnInit() {
@@ -34,8 +41,13 @@ export class SignupPage implements OnInit {
         return;
       }
 
-      // Send POST request to PHP API
-      this.http.post('http://localhost/user_api/register.php', this.userData)
+      const registerData = {
+        ...this.userData,
+        role: 'customer' // Automatically set the role to customer
+      };
+
+      // Send POST request to PHP API for registration
+      this.http.post('http://localhost/user_api/register.php', registerData)
         .subscribe(
           async (response: any) => {
             if (response.status === 1) {
@@ -51,13 +63,36 @@ export class SignupPage implements OnInit {
           }
         );
     } else {
-      await this.presentToast('Login functionality not implemented yet', 'warning');
+      // Send POST request to PHP API for login
+      this.http.post('http://localhost/user_api/login.php', this.loginData)
+        .subscribe(
+          async (response: any) => {
+            if (response.status === 1) {
+              await this.presentToast('Login successful', 'success');
+              
+              // Navigate based on the role
+              if (response.role === 'admin') {
+                this.router.navigate(['/admin-dashboard']); // Navigate to admin dashboard
+              } else if (response.role === 'cashier') {
+                this.router.navigate(['/pos']); // Navigate to POS page
+              } else {
+                this.router.navigate(['/home']); // Navigate to home page for all other roles
+              }
+            } else {
+              await this.presentToast('Login failed: ' + response.message, 'danger');
+            }
+          },
+          async (error: HttpErrorResponse) => {
+            console.error('Error during login:', error);
+            await this.presentToast('Error during login: ' + error.message, 'danger');
+          }
+        );
     }
   }
 
   validateForm(): boolean {
-    if (!this.userData.name || !this.userData.surname || !this.userData.email || 
-        !this.userData.address || !this.userData.password || !this.userData.confirmPassword) {
+    if (!this.userData.username || !this.userData.first_name || !this.userData.last_name || 
+        !this.userData.email || !this.userData.password || !this.userData.confirmPassword) {
       this.presentToast('All fields are required', 'warning');
       return false;
     }
@@ -93,12 +128,16 @@ export class SignupPage implements OnInit {
 
   clearFields() {
     this.userData = {
-      name: '',
-      surname: '',
+      username: '',
+      first_name: '',
+      last_name: '',
       email: '',
-      address: '',
       password: '',
       confirmPassword: ''
+    };
+    this.loginData = {
+      email: '',
+      password: ''
     };
   }
 }

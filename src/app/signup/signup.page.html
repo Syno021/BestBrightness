@@ -6,37 +6,39 @@
     </ion-card-header>
 
     <ion-card-content>
-      <!-- Common fields for both Login and Register -->
-      <ion-item *ngIf="!isRegister">
-        <ion-input label="Email" labelPlacement="floating" placeholder="Enter email" [(ngModel)]="userData.email"></ion-input>
-      </ion-item>
-      <ion-item *ngIf="!isRegister">
-        <ion-input label="Password" labelPlacement="floating" placeholder="Enter password" [(ngModel)]="userData.password"></ion-input>
-      </ion-item>
-
-      <!-- Additional fields for registration -->
-      <div *ngIf="isRegister">
+      <!-- Fields for Login -->
+      <div *ngIf="!isRegister">
         <ion-item>
-          <ion-input label="Name" labelPlacement="floating" placeholder="Enter your name" [(ngModel)]="userData.name"></ion-input>
+          <ion-input label="Email" labelPlacement="floating" placeholder="Enter email" [(ngModel)]="loginData.email"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-input label="Surname" labelPlacement="floating" placeholder="Enter your surname" [(ngModel)]="userData.surname"></ion-input>
+          <ion-input label="Password" labelPlacement="floating" placeholder="Enter password" [(ngModel)]="loginData.password" type="password"></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Fields for Registration -->
+      <div *ngIf="isRegister">
+        <ion-item>
+          <ion-input label="Username" labelPlacement="floating" placeholder="Enter your username" [(ngModel)]="userData.username"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input label="First Name" labelPlacement="floating" placeholder="Enter your first name" [(ngModel)]="userData.first_name"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input label="Last Name" labelPlacement="floating" placeholder="Enter your last name" [(ngModel)]="userData.last_name"></ion-input>
         </ion-item>
         <ion-item>
           <ion-input label="Email" labelPlacement="floating" placeholder="Enter email" [(ngModel)]="userData.email"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-input label="Address" labelPlacement="floating" placeholder="Enter your address" [(ngModel)]="userData.address"></ion-input>
+          <ion-input label="Password" labelPlacement="floating" placeholder="Enter password" [(ngModel)]="userData.password" type="password"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-input label="Password" labelPlacement="floating" placeholder="Enter password" [(ngModel)]="userData.password"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-input label="Confirm Password" labelPlacement="floating" placeholder="Confirm password" [(ngModel)]="userData.confirmPassword"></ion-input>
+          <ion-input label="Confirm Password" labelPlacement="floating" placeholder="Confirm password" [(ngModel)]="userData.confirmPassword" type="password"></ion-input>
         </ion-item>
       </div>
 
-      <!-- Login/Register button changes based on mode -->
+      <!-- Submit Button -->
       <ion-button expand="full" (click)="submitForm()">{{ isRegister ? 'Register' : 'Login' }}</ion-button>
 
       <!-- Checkbox to toggle between Login and Register -->

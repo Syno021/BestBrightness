@@ -1,4 +1,3 @@
-
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-title>Admin Inventory Management</ion-title>
@@ -6,191 +5,152 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <!-- Collapsible Header -->
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Admin Inventory Management</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- Search and Filter -->
+  <ion-card class="custom-card">
+    <ion-card-content>
+      <ion-searchbar placeholder="Search inventory items"></ion-searchbar>
+      <ion-item>
+        <ion-label>Filter By</ion-label>
+        <ion-select placeholder="Select Filter">
+          <ion-select-option value="category">Category</ion-select-option>
+          <ion-select-option value="status">Status</ion-select-option>
+          <ion-select-option value="stock">Stock Level</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
 
-  <!-- Main Content -->
-  <ion-content>
-    <!-- Search and Filter -->
-    <ion-card class="custom-card">
-      <ion-card-content>
-        <ion-searchbar placeholder="Search inventory items"></ion-searchbar>
-        <ion-item>
-          <ion-label>Filter By</ion-label>
-          <ion-select placeholder="Select Filter">
-            <ion-select-option value="category">Category</ion-select-option>
-            <ion-select-option value="status">Status</ion-select-option>
-            <ion-select-option value="stock">Stock Level</ion-select-option>
-          </ion-select>
+  <!-- Inventory List -->
+  <ion-card class="custom-card">
+    <ion-card-header>
+      <ion-card-title>Inventory List</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col>Item ID</ion-col>
+          <ion-col>Name</ion-col>
+          <ion-col>Category</ion-col>
+          <ion-col>Status</ion-col>
+          <ion-col>Stock</ion-col>
+          <ion-col>Actions</ion-col>
+        </ion-row>
+        <ion-row *ngFor="let item of products">
+          <ion-col>{{ item.product_id }}</ion-col>
+          <ion-col>{{ item.name }}</ion-col>
+          <ion-col>{{ item.category }}</ion-col>
+          <ion-col>{{ item.stock_quantity > 0 ? 'Available' : 'Out of stock' }}</ion-col>
+          <ion-col>
+            <span [ngClass]="{'stock-status': true, 'stock-low': item.stock_quantity < 75, 'stock-medium': item.stock_quantity >= 75 && item.stock_quantity < 150, 'stock-high': item.stock_quantity >= 150}">
+              {{ item.stock_quantity }}
+            </span>
+          </ion-col>
+          <ion-col>
+            <ion-button size="small" color="primary" (click)="editItem(item)">Edit</ion-button>
+            <ion-button size="small" color="danger" (click)="deleteItem(item.product_id)">Delete</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Low Stock Alerts -->
+  <ion-card class="custom-card">
+    <ion-card-header>
+      <ion-card-title>Low Stock Alerts</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="alert">
+        <p><strong>Low Stock Alert:</strong> The following items are running low:</p>
+        <ul>
+          <li *ngFor="let item of lowStockAlert">
+            {{ item.name }} (ID: {{ item.product_id }}) - Current Stock: <span class="stock-status stock-low">{{ item.stock_quantity }}</span>
+          </li>
+        </ul>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- View Slow/Fast Moving Items -->
+  <ion-card class="custom-card">
+    <ion-card-header>
+      <ion-card-title>Slow/Fast Moving Items</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-segment value="fast">
+        <ion-segment-button value="fast">
+          <ion-label>Fast Moving</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="slow">
+          <ion-label>Slow Moving</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+      <ion-list>
+        <ion-item *ngFor="let item of fastMoving">
+          <ion-label>{{ item.name }}</ion-label>
+          <ion-note slot="end">Stock: {{ item.stock_quantity }} units</ion-note>
         </ion-item>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Inventory List -->
-<ion-card class="custom-card">
-  <ion-card-header>
-    <ion-card-title>Inventory List</ion-card-title>
-  </ion-card-header>
-  <ion-card-content>
-    <ion-grid>
-      <ion-row>
-        <ion-col>Item ID</ion-col>
-        <ion-col>Name</ion-col>
-        <ion-col>Category</ion-col>
-        <ion-col>Status</ion-col>
-        <ion-col>Stock</ion-col>
-        <ion-col>Actions</ion-col>
-      </ion-row>
-      <ion-row *ngFor="let item of products">
-        <ion-col>{{ item.id }}</ion-col>
-        <ion-col>{{ item.product }}</ion-col>
-        <ion-col>{{ item.category }}</ion-col>
-        <ion-col>{{ item.status || 'Available' }}</ion-col>
-        <ion-col><span class="stock-status stock-medium">{{ item.quantity }}</span></ion-col>
-        <ion-col>
-          <ion-button size="small" color="primary" (click)="editItem(item.id)">Edit</ion-button>
-          <ion-button size="small" color="danger" (click)="deleteItem(item.id)">Delete</ion-button>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </ion-card-content>
-</ion-card>
-
-
-    <!-- Low Stock Alerts -->
-    <ion-card class="custom-card">
-      <ion-card-header>
-        <ion-card-title>Low Stock Alerts</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="alert">
-          <p><strong>Low Stock Alert:</strong> The following items are running low:</p>
-          <ul>
-            <li>Widget B (ID: 102) - Current Stock: <span class="stock-status stock-low">5</span></li>
-            <li>Gadget X (ID: 205) - Current Stock: <span class="stock-status stock-low">3</span></li>
-          </ul>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- View Slow/Fast Moving Items -->
-    <ion-card class="custom-card">
-      <ion-card-header>
-        <ion-card-title>Slow/Fast Moving Items</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-segment value="fast">
-          <ion-segment-button value="fast">
-            <ion-label>Fast Moving</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="slow">
-            <ion-label>Slow Moving</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-        <ion-list>
-          <ion-item>
-            <ion-label>Widget A</ion-label>
-            <ion-note slot="end">Sales: 100 units/month</ion-note>
-          </ion-item>
-          <ion-item>
-            <ion-label>Gadget Y</ion-label>
-            <ion-note slot="end">Sales: 80 units/month</ion-note>
-          </ion-item>
-          <!-- More items as needed -->
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Generate Purchase Orders -->
-    <ion-card class="custom-card">
-      <ion-card-header>
-        <ion-card-title>Generate Purchase Orders</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-item>
-          <ion-label position="floating">Supplier</ion-label>
-          <ion-select placeholder="Select Supplier">
-            <ion-select-option value="supplier1">Supplier 1</ion-select-option>
-            <ion-select-option value="supplier2">Supplier 2</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-item>
-          <ion-label position="floating">Items</ion-label>
-          <ion-select multiple="true" placeholder="Select Items">
-            <ion-select-option value="101">Widget A</ion-select-option>
-            <ion-select-option value="102">Widget B</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-button expand="block" color="secondary" margin-top>Generate PO</ion-button>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Action Buttons -->
-    <ion-footer>
-      <ion-toolbar>
-        <ion-buttons slot="end">
-          <ion-button color="success" (click)="presentAddItemModal()">Add New Item</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-footer>
-  </ion-content>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
 
   <!-- Modal for adding items -->
+  <ion-modal #addItemModal class="custom-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Add New Item</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="dismissModal()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <form (ngSubmit)="submitForm()">
+          <ion-item>
+            <ion-label position="floating">Product Name (with size)</ion-label>
+            <ion-input type="text" [(ngModel)]="newItem.name" name="name" required placeholder="e.g., Dishwasher (250ml)" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Category</ion-label>
+            <ion-select [(ngModel)]="newItem.category" name="category" required>
+              <ion-select-option value="liquids">Liquids</ion-select-option>
+              <ion-select-option value="powders">Powders</ion-select-option>
+              <ion-select-option value="material">Material</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Quantity</ion-label>
+            <ion-input type="number" [(ngModel)]="newItem.stock_quantity" name="stock_quantity" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Barcode</ion-label>
+            <ion-input type="text" [(ngModel)]="newItem.barcode" name="barcode" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Description</ion-label>
+            <ion-textarea [(ngModel)]="newItem.description" name="description" rows="3"></ion-textarea>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Price</ion-label>
+            <ion-input type="number" [(ngModel)]="newItem.price" name="price" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Image URL</ion-label>
+            <ion-input type="text" [(ngModel)]="newItem.image_url" name="image_url"></ion-input>
+          </ion-item>
+          <ion-button expand="block" type="submit" class="ion-margin-top">Add Item</ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
-  <style>
-    /* ... (previous styles remain the same) ... */
-    .custom-modal .modal-wrapper {
-      height: 80%;
-      top: 10%;
-      position: absolute; 
-      display: block;  
-    }
-  </style>
-
-<ion-modal #addItemModal class="custom-modal">
-  <ng-template>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Add New Item</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="dismissModal()">Close</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding">
-      <form (ngSubmit)="submitForm()">
-        <ion-item>
-          <ion-label position="floating">Product Name (with size)</ion-label>
-          <ion-input type="text" [(ngModel)]="newItem.product" name="product" required placeholder="e.g., Dishwasher (250ml)"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="floating">Category</ion-label>
-          <ion-select [(ngModel)]="newItem.category" name="category" required placeholder="Select Category">
-            <ion-select-option value="liquids">Liquids</ion-select-option>
-            <ion-select-option value="powders">Powders</ion-select-option>
-            <ion-select-option value="material">Material</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-item>
-          <ion-label position="floating">Quantity</ion-label>
-          <ion-input type="number" [(ngModel)]="newItem.quantity" name="quantity" required></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="floating">Barcode</ion-label>
-          <ion-input type="text" [(ngModel)]="newItem.barcode" name="barcode" required></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="floating">Description</ion-label>
-          <ion-textarea [(ngModel)]="newItem.description" name="description" rows="3"></ion-textarea>
-        </ion-item>
-        <ion-button expand="block" type="submit" class="ion-margin-top">Add Item</ion-button>
-      </form>
-    </ion-content>
-  </ng-template>
-</ion-modal>
-
+  <!-- Action Buttons -->
+  <ion-footer>
+    <ion-toolbar>
+      <ion-buttons slot="end">
+        <ion-button color="success" (click)="presentAddItemModal()">Add New Item</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-footer>
 </ion-content>
