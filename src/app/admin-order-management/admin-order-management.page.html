@@ -33,30 +33,27 @@
         <ion-card-title>Order List</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        <!-- Sample table layout for orders -->
         <ion-grid>
           <ion-row>
             <ion-col>Order ID</ion-col>
-            <ion-col>Customer</ion-col>
-            <ion-col>Date</ion-col>
+            <ion-col>User ID</ion-col>
+            <ion-col>Amount</ion-col>
             <ion-col>Status</ion-col>
-            <ion-col>Total</ion-col>
+            <ion-col>Date</ion-col>
             <ion-col>Actions</ion-col>
           </ion-row>
-          <!-- Add order rows here -->
-          <ion-row>
-            <ion-col>2023-001</ion-col>
-            <ion-col>Jane Doe</ion-col>
-            <ion-col>2023-09-15</ion-col>
-            <ion-col>Shipped</ion-col>
-            <ion-col>$123.45</ion-col>
+          <ion-row *ngFor="let order of orderData">
+            <ion-col>{{ order.order_id }}</ion-col>
+            <ion-col>{{ order.user_id }}</ion-col>
+            <ion-col>{{ order.total_amount }}</ion-col>
+            <ion-col>{{ order.status }}</ion-col>
+            <ion-col>{{ order.created_at }}</ion-col>
             <ion-col>
               <ion-button color="primary">View Details</ion-button>
               <ion-button color="success">Update Status</ion-button>
               <ion-button color="danger">Cancel Order</ion-button>
             </ion-col>
           </ion-row>
-          <!-- More rows as needed -->
         </ion-grid>
       </ion-card-content>
     </ion-card>
