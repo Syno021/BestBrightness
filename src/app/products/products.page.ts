@@ -2,6 +2,9 @@ import { Component, OnInit,ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController,IonSearchbar } from '@ionic/angular';
 import { CartService } from '../services/cart.service';
+import { NavController } from '@ionic/angular';
+
+
 
 interface Product {
   id: number;
@@ -44,15 +47,22 @@ export class ProductsPage implements OnInit {
   selectedCategory: string = 'All';
   sortOption: string = 'name';
 
-  constructor(private cartservice: CartService, private toastController: ToastController) { }
+  constructor(private cartservice: CartService, private toastController: ToastController, private router: Router) { }
 
   ngOnInit() {
     this.applyFilters();
   }
 
   // Search for products based on search term
+  
+
+
   searchProducts() {
     this.applyFilters();
+  }
+
+  navigateToCart() {
+    this.router.navigate(['/cart']);
   }
 
   // Filter products by category
@@ -73,9 +83,15 @@ export class ProductsPage implements OnInit {
 
     // Filter products by category and search term
     this.filteredProducts = this.products.filter(product => 
-      (this.selectedCategory === 'All' || product.category === this.selectedCategory) &&
       product.name.toLowerCase().includes(searchTerm)
     );
+  
+    // this.filteredProducts = this.products.filter(product => 
+    //   (this.selectedCategory === 'All' || product.category === this.selectedCategory) &&
+    //   product.name.toLowerCase().includes(searchTerm)
+    // );
+
+
 
     // Sort products based on the selected option
     switch (this.sortOption) {

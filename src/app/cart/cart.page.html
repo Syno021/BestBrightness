@@ -1,76 +1,3 @@
-<!-- <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>cart</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">cart</ion-title>
-    </ion-toolbar>
-  </ion-header>
-</ion-content> -->
-
-
-<!-- src/app/cart/cart.page.html -->
-
-
-<!-- <ion-header>
-  <ion-toolbar>
-    <ion-title>Best Brightness</ion-title>
-    <ion-buttons slot="end">
-      <ion-button>
-        <ion-icon name="cart"></ion-icon>
-      </ion-button>
-      <ion-button>
-        <ion-icon name="menu"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header> -->
-
-<!-- <ion-content>
-  <ion-grid>
-    <ion-row class="header-row">
-      <ion-col>Product</ion-col>
-      <ion-col>Quantity</ion-col>
-      <ion-col>Subtotal</ion-col>
-    </ion-row>
-    <ion-row *ngFor="let item of cartItems">
-      <ion-col>
-        <ion-img [src]="item.image"></ion-img>
-        <h3>{{ item.name }}</h3>
-        <p>Price: ${{ item.price.toFixed(2) }}</p>
-        <ion-button fill="clear" (click)="removeItem(item.id)">Remove</ion-button>
-      </ion-col> -->
-      <!-- <ion-col>
-        <ion-input type="number" [value]="item.quantity" (ionChange)="updateQuantity(item.id, $event.detail.value)"></ion-input>
-      </ion-col> -->
-      <!-- <ion-col>${{ (item.price * item.quantity).toFixed(2) }}</ion-col>
-    </ion-row>
-  </ion-grid>
-
-  <ion-grid>
-    <ion-row>
-      <ion-col size="8">Subtotal</ion-col>
-      <ion-col size="4" class="ion-text-end">${{ subtotal.toFixed(2) }}</ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col size="8">Tax</ion-col>
-      <ion-col size="4" class="ion-text-end">${{ tax.toFixed(2) }}</ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col size="8">Total</ion-col>
-      <ion-col size="4" class="ion-text-end">${{ total.toFixed(2) }}</ion-col>
-    </ion-row>
-  </ion-grid>
-
-  <ion-button expand="block" (click)="proceedToCheckout()">Proceed to checkout →</ion-button>
-</ion-content> -->
-
-
-<!-- src/app/cart/cart.page.html -->
 <ion-content class="ion-padding">
   <div class="cart-container">
     <table class="cart-table">
@@ -84,10 +11,10 @@
       <tbody>
         <tr *ngFor="let item of cartItems">
           <td class="product-info">
-            <ion-img [src]="item.image"></ion-img>
+            <ion-img [src]="item.image"></ion-img> <!-- Display product image -->
             <div>
               <h3>{{ item.name }}</h3>
-              <p>Price: ${{ item.price.toFixed(2) }}</p>
+              <p>Price: R{{ item.price.toFixed(2) }}</p>
               <ion-button fill="clear" (click)="removeItem(item.id)">Remove</ion-button>
             </div>
           </td>
@@ -98,7 +25,7 @@
               <ion-button fill="clear" (click)="increaseQuantity(item.id)">+</ion-button>
             </div>
           </td>
-          <td>${{ (item.price * item.quantity).toFixed(2) }}</td>
+          <td>R{{ (item.price * item.quantity).toFixed(2) }}</td>
         </tr>
       </tbody>
     </table>
@@ -107,19 +34,21 @@
       <table>
         <tr>
           <td>Subtotal</td>
-          <td>${{ subtotal.toFixed(2) }}</td>
+          <td>R{{ subtotal.toFixed(2) }}</td>
         </tr>
         <tr>
           <td>Tax</td>
-          <td>${{ tax.toFixed(2) }}</td>
+          <td>R{{ tax.toFixed(2) }}</td>
         </tr>
         <tr>
           <td><strong>Total</strong></td>
-          <td><strong>${{ total.toFixed(2) }}</strong></td>
+          <td><strong>R{{ total.toFixed(2) }}</strong></td>
         </tr>
       </table>
     </div>
 
-    <ion-button expand="block" (click)="proceedToCheckout()">Proceed to checkout →</ion-button>
+   <!-- src/app/cart/cart.page.html -->
+<!-- ... other code ... -->
+<ion-button expand="block" (click)="proceedOrder()">Proceed Order →</ion-button>
   </div>
 </ion-content>
