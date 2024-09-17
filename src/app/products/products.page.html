@@ -3,17 +3,11 @@
     <ion-title>
       <ion-icon name="sparkles-outline"></ion-icon>
       Best Brightness</ion-title>
-    <ion-buttons slot="end">
-      <ion-button>
-        <ion-icon name="cart-outline"></ion-icon>
-      </ion-button>
-      <ion-button>
-        <ion-icon name="chatbubbles-outline"></ion-icon>
-      </ion-button>
-      <ion-button>
-        <ion-icon name="notifications-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+      <ion-buttons slot="end">
+        <ion-button (click)="navigateToCart()">
+          <ion-icon name="cart-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
   </ion-toolbar>
   <ion-toolbar>
     <ion-searchbar placeholder="Search Product" (ionChange)="searchProducts()"></ion-searchbar>
