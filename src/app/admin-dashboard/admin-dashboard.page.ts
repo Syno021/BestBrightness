@@ -9,35 +9,52 @@ import { HttpClient } from '@angular/common/http';
 export class AdminDashboardPage implements OnInit {
 
   totalUsers: number = 0;
-  salesThisMonth: number = 0;
+  totalSalesAmount: number = 0;
   pendingOrders: number = 0;
 
   constructor(private http: HttpClient) { }
 
   ngOnInit() {
     this.fetchUserCount();
-    this.fetchSalesCount();
+    this.fetchTotalSalesAmount();
     this.fetchPendingOrdersCount();
   }
 
   fetchUserCount() {
-    this.http.get<{ user_count: number }>('http://localhost/user_api/register.php')
-      .subscribe(response => {
-        this.totalUsers = response.user_count;
-      });
+    this.http.get<{ user_count: number }>('http://localhost/user_api/register.php?count=true')
+      .subscribe(
+        response => {
+          this.totalUsers = response.user_count;
+        },
+        error => {
+          console.error('Error fetching user count:', error);
+        }
+      );
   }
 
-  fetchSalesCount() {
-    this.http.get<{ sales_count: number }>('http://localhost/user_api/sales.php')
-      .subscribe(response => {
-        this.salesThisMonth = response.sales_count;
-      });
+  fetchTotalSalesAmount() {
+    this.http.get<{ totalSalesAmount: number }>('http://localhost/user_api/sales.php?total_only=true')
+      .subscribe(
+        response => {
+          this.totalSalesAmount = response.totalSalesAmount;
+        },
+        error => {
+          console.error('Error fetching total sales amount:', error);
+        }
+      );
   }
+  
 
   fetchPendingOrdersCount() {
-    this.http.get<{ pending_orders_count: number }>('http://localhost/user_api/orders.php')
-      .subscribe(response => {
-        this.pendingOrders = response.pending_orders_count;
-      });
+    this.http.get<{ order_count: number }>('http://localhost/user_api/orders.php?count=true')
+      .subscribe(
+        response => {
+          this.pendingOrders = response.order_count;
+        },
+        error => {
+          console.error('Error fetching order count:', error);
+        }
+      );
   }
+  
 }

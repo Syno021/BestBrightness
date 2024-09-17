@@ -1,8 +1,3 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Admin Dashboard</ion-title>
-  </ion-toolbar>
-</ion-header>
 
 <ion-content [fullscreen]="true">
   <!-- Collapsible Header -->
@@ -30,10 +25,10 @@
         <ion-col size="12" size-md="6" size-lg="3">
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Sales This Month</ion-card-title>
+              <ion-card-title>Total Sales Amount</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <h2>${{ salesThisMonth }}</h2>
+              <h2>{{ totalSalesAmount | currency }}</h2>
             </ion-card-content>
           </ion-card>
         </ion-col>

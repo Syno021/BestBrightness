@@ -1,57 +1,54 @@
-import { Component, OnInit, Renderer2, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
+import { MenuController } from '@ionic/angular';
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
 })
-export class NavbarComponent implements OnInit, AfterViewInit {
-  private lastScrollTop = 0;
-  isNavbarHidden = false;
+export class NavbarComponent implements OnInit {
   showNavbar = false;
-  
-  private navbarPages = ['/home', '/contact', '/about', '/view']; // Pages where the regular navbar should appear
-  private adminNavbarPages = [
-    '/admin-dashboard',
-    '/admin-inventory-management',
-    '/admin-customer-management',
-    '/admin-sales-report',
-    '/admin-order-management',
-    '/admin-user-management'
-  ]; // Pages where the admin navbar should appear
+  isAdminPage = false;
 
-  isOnAdminPage = false; // Flag to check if we are on an admin page
+  regularPages = [
+    { title: 'Home', url: '/home', icon: 'home' },
+    { title: 'Contact', url: '/contact', icon: 'mail' },
+    { title: 'About', url: '/about', icon: 'information-circle' },
+    { title: 'View', url: '/view', icon: 'eye' }
+  ];
 
-  constructor(private renderer: Renderer2, private el: ElementRef, private router: Router) {
-    // Listen for route changes
+  adminPages = [
+    { title: 'Dashboard', url: '/admin-dashboard', icon: 'speedometer' },
+    { title: 'Inventory', url: '/admin-inventory-management', icon: 'cube' },
+    { title: 'Customers', url: '/admin-customer-management', icon: 'people' },
+    { title: 'Sales Report', url: '/admin-sales-report', icon: 'bar-chart' },
+    { title: 'Orders', url: '/admin-order-management', icon: 'cart' },
+    { title: 'Users', url: '/admin-user-management', icon: 'person' }
+  ];
+
+  constructor(
+    private router: Router,
+    private menuController: MenuController
+  ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        const currentUrl = event.url;
-
-        // Determine if the user is on an admin page
-        this.isOnAdminPage = this.adminNavbarPages.includes(currentUrl);
-
-        // Show or hide the navbar based on whether it's an admin or regular page
-        this.showNavbar = this.navbarPages.includes(currentUrl) || this.adminNavbarPages.includes(currentUrl);
+        this.checkCurrentPage(event.url);
       }
     });
   }
 
-  ngAfterViewInit() {
-    this.renderer.listen('window', 'scroll', () => {
-      const st = window.pageYOffset || document.documentElement.scrollTop;
-      if (st > this.lastScrollTop) {
-        // Scrolling down
-        this.isNavbarHidden = true;
-      } else {
-        // Scrolling up
-        this.isNavbarHidden = false;
-      }
-      this.lastScrollTop = st <= 0 ? 0 : st;
-    });
+  ngOnInit() {
+    this.checkCurrentPage(this.router.url);
   }
 
-  ngOnInit() {}
+  checkCurrentPage(url: string) {
+    const allPages = [...this.regularPages, ...this.adminPages];
+    this.showNavbar = allPages.some(page => url.includes(page.url));
+    this.isAdminPage = this.adminPages.some(page => url.includes(page.url));
+  }
+
+  toggleMenu() {
+    this.menuController.toggle('main-menu');
+  }
 }
-
