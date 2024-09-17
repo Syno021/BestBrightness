@@ -1,5 +1,7 @@
+// admin-dashboard.page.ts
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -7,12 +9,11 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./admin-dashboard.page.scss'],
 })
 export class AdminDashboardPage implements OnInit {
-
   totalUsers: number = 0;
   totalSalesAmount: number = 0;
   pendingOrders: number = 0;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private router: Router) { }
 
   ngOnInit() {
     this.fetchUserCount();
@@ -43,7 +44,6 @@ export class AdminDashboardPage implements OnInit {
         }
       );
   }
-  
 
   fetchPendingOrdersCount() {
     this.http.get<{ order_count: number }>('http://localhost/user_api/orders.php?count=true')
@@ -56,5 +56,8 @@ export class AdminDashboardPage implements OnInit {
         }
       );
   }
-  
+
+  navigateTo(route: string) {
+    this.router.navigate([route]);
+  }
 }

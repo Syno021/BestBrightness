@@ -62,3 +62,21 @@ ion-header {
 ion-chip {
   margin-bottom: 8px;
 }
+/* Burger menu visibility for mobile */
+.burger-icon {
+  display: none;
+}
+
+.desktop-nav {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .burger-icon {
+    display: block;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+}

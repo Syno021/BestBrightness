@@ -38,6 +38,7 @@ export class PromotionsPage implements OnInit {
       endDate: new Date('2024-09-17T18:00:00')
     }
   ];
+  
 
   constructor() { }
 
