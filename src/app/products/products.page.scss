@@ -35,3 +35,26 @@ ion-content ion-toolbar {
   ion-item ion-icon {
     color: #c9c9ca;
   }
+
+  .price-rating {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .price {
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+
+  .price-rating {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .price {
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+  
