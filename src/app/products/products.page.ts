@@ -48,9 +48,7 @@ products: Product[] = [
   }
 
   
-  // applyFilters() {
-  //   throw new Error('Method not implemented.');
-  // }
+
 
   searchProducts() {
     this.applyFilters()
@@ -70,9 +68,15 @@ products: Product[] = [
     const searchTerm = this.searchbar ? this.searchbar.value?.toLowerCase()?? '' : '';
     
     this.filteredProducts = this.products.filter(product => 
-      (this.selectedCategory === 'All' || product.category === this.selectedCategory) &&
       product.name.toLowerCase().includes(searchTerm)
     );
+  
+    // this.filteredProducts = this.products.filter(product => 
+    //   (this.selectedCategory === 'All' || product.category === this.selectedCategory) &&
+    //   product.name.toLowerCase().includes(searchTerm)
+    // );
+
+
 
 switch(this.sortOption) {
   case 'name':

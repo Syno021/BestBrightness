@@ -8,6 +8,11 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class CartService {
+  clearCart() {
+    this.cartItems = [];
+    this.updateCart();
+    throw new Error('Method not implemented.');
+  }
 
   private cartItems: any[] = [];
   private cartItemsSubject = new BehaviorSubject<any[]>([]);

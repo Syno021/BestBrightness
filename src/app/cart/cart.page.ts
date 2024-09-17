@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CartService } from '../services/cart.service';
 import { Router } from '@angular/router';
+import { AlertController, AlertOptions } from '@ionic/angular';
 
 @Component({
   selector: 'app-cart',
@@ -15,8 +16,11 @@ export class CartPage implements OnInit {
   tax: number = 0;
   total: number = 0;
 
-  constructor(private cartService: CartService, private router: Router) {
-  }
+  constructor(
+    private cartService: CartService, 
+    // private router: Router,
+     private alertController: AlertController 
+  ) {}
 
   ngOnInit() {
     this.cartService.getCart().subscribe(items => {
@@ -54,8 +58,44 @@ export class CartPage implements OnInit {
     this.total = this.subtotal + this.tax;
   }
   
-  proceedToCheckout() {
-    this.router.navigate(['/checkout']);
-    // Implement checkout logic
-  }
+  proceedOrder = async (): Promise<void> => {
+    if (this.cartItems.length === 0) {
+      const alert = await this.alertController.create({
+        header: 'Empty Cart',
+        message: 'Your cart is empty. Add some items before proceeding.',
+        buttons: ['OK']
+      });
+
+      await alert.present();
+      return;
+    }
+
+const alert = await this.alertController.create({
+  header: 'Order Placed',
+  message: `Your order for $${this.total.toFixed(2)} has been placed successfully!`,
+  buttons: [
+      {
+        text: 'OK',
+        handler: () => {
+          this.cartService.clearCart();
+          this.cartItems = [];
+          this.calculateTotals();
+          alert.dismiss();
+        }
+      }
+    ]
+  });
+
+  await alert.present();
+
+   // Automatically dismiss the alert after 3 seconds
+   setTimeout(() => {
+    alert.dismiss();
+  }, 3000);
+};
+
 }
+
+
+
+
