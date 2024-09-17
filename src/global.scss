@@ -82,39 +82,68 @@
     --text-color: #333; /* Dark text */
   }
   
-  /* Global Footer */
-  .footer {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 20px;
-    text-align: center;
-  }
-  
-  .footer-links a {
-    color: white;
-    margin: 0 10px;
-    text-decoration: none;
-  }
-  
-  .footer-links a:hover {
-    text-decoration: underline;
-  }
-  
-  /* Global Header Styles (if applicable) */
-  .header {
-    background-color: var(--primary-color);
-    color: rgb(0, 116, 155);
-    padding: 20px;
-    text-align: center;
-  }
-  
-  .header h1 {
-    font-size: 2.5em;
-  }
-  
-  /* Apply background and text color globally */
   ion-content {
-    --background: rgb(153, 209, 228);;
-    color: var(--text-color);
+    --background: #f4f5f8;
+  }
+  
+  ion-header {
+    ion-toolbar {
+      --background: #4a90e2;
+      
+      ion-title {
+        display: flex;
+        align-items: center;
+        
+        ion-icon {
+          margin-right: 8px;
+          font-size: 24px;
+        }
+      }
+    }
+  }
+  
+  .promo-card {
+    margin-bottom: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    
+    img {
+      height: 200px;
+      object-fit: cover;
+      width: 100%;
+    }
+  
+    ion-card-header {
+      background-color: #ffffff;
+      
+      ion-card-subtitle {
+        font-weight: bold;
+        color: #4a90e2;
+      }
+      
+      ion-card-title {
+        font-size: 1.2rem;
+        color: #333333;
+      }
+    }
+  
+    ion-card-content {
+      background-color: #ffffff;
+      padding: 16px;
+      
+      p {
+        margin-bottom: 16px;
+        color: #666666;
+      }
+    }
+  
+    ion-button {
+      margin: 16px;
+      --color: #4a90e2;
+    }
+  }
+  
+  ion-chip {
+    margin-bottom: 8px;
   }
   
