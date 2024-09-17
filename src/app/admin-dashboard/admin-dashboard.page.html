@@ -23,7 +23,7 @@
               <ion-card-title>Total Users</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <h2>1,234</h2>
+              <h2>{{ totalUsers }}</h2>
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -33,17 +33,7 @@
               <ion-card-title>Sales This Month</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <h2>$5,678</h2>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-        <ion-col size="12" size-md="6" size-lg="3">
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>New Signups</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              <h2>45</h2>
+              <h2>${{ salesThisMonth }}</h2>
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -53,7 +43,7 @@
               <ion-card-title>Pending Orders</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <h2>12</h2>
+              <h2>{{ pendingOrders }}</h2>
             </ion-card-content>
           </ion-card>
         </ion-col>

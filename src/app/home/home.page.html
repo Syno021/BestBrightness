@@ -1,122 +1,74 @@
-<ion-content>
-  <!-- Hero Section with fading images -->
-  <div class="hero-section">
-    <!-- <img src="assets/slide1.png" class="fade-image active" />
-    <img src="assets/slide2.jpg" class="fade-image" />
-    <img src="assets/slide3.png" class="fade-image" />
-    <img src="assets/slide4.jpg" class="fade-image" />
-    <img src="assets/slide5.jpg" class="fade-image" /> -->
-  </div>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Inventory Store</ion-title>
+    <ion-buttons slot="start" class="burger-icon">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-buttons slot="end" class="desktop-nav">
+      <ion-button>About</ion-button>
+      <ion-button>Contact</ion-button>
+      <ion-button>Privacy Policy</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 
-  <!-- Info Cards Section (3x3 grid, manually created) -->
-  <ion-grid class="info-cards">
-    <ion-row>
-      <ion-col size="4">
-        <ion-card>
-          <ion-icon name="bulb-outline"></ion-icon>
-          <ion-card-title>Quality Lighting</ion-card-title>
-          <ion-card-content>
-            Best Brightness offers top-notch lighting solutions for any environment.
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-      <ion-col size="4">
-        <ion-card>
-          <ion-icon name="speedometer-outline"></ion-icon>
-          <ion-card-title>Energy Efficiency</ion-card-title>
-          <ion-card-content>
-            Our products are designed to consume less power and save energy.
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-      <ion-col size="4">
-        <ion-card>
-          <ion-icon name="sunny-outline"></ion-icon>
-          <ion-card-title>Natural Light</ion-card-title>
-          <ion-card-content>
-            Experience lighting that mimics the warmth and glow of the sun.
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-    <!-- Add more rows for the remaining 6 cards -->
-  </ion-grid>
+<ion-menu contentId="main-content" side="start">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Menu</ion-title>
+    </ion-toolbar>
+  </ion-header>
 
-  <!-- Milestones Section as Horizontally Scrollable Cards -->
-  <div class="scroll-container">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Founded in 2000</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        Best Brightness was established in 2000 with the aim of delivering top-tier lighting solutions.
-      </ion-card-content>
-    </ion-card>
+  <ion-content>
+    <ion-list>
+      <ion-item button>About</ion-item>
+      <ion-item button>Contact</ion-item>
+      <ion-item button>Privacy Policy</ion-item>
+    </ion-list>
+  </ion-content>
+</ion-menu>
 
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>100,000+ Customers</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        We have successfully served over 100,000 satisfied customers worldwide.
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Energy Efficient Products</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        Since 2010, we've launched products that consume 50% less energy on average.
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Global Presence</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        We now operate in over 30 countries with a dedicated team in each region.
-      </ion-card-content>
-    </ion-card>
-  </div>
-
-  <!-- Other Info Section -->
-  <div class="other-info">
-    <h2>Additional Information</h2>
-    <p>Relevant information about Best Brightness goes here...</p>
-  </div>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-info">
-      <h2>About Best Brightness</h2>
+<ion-content [fullscreen]="true" id="main-content">
+  <div class="hero">
+    <div class="hero-content">
+      <h1>Welcome to Best Brighness</h1>
+      <p>Find the best products at unbeatable prices!</p>
+      <div class="hero-buttons">
+        <ion-button expand="block" size="large">
+          <ion-icon name="person-add-outline" slot="start"></ion-icon>
+          Register
+        </ion-button>
+        <ion-button class="login" expand="block" size="large" fill="outline">
+          <ion-icon name="log-in-outline" slot="start"></ion-icon>
+          Login
+        </ion-button>
+      </div>
     </div>
-    <div class="footer-links">
-      <a href="#">About</a>
-      <a href="#">Contact</a>
-      <a href="#">Privacy Policy</a>
-    </div>
-  </footer>
+  </div>
 
-  <script>
-    import { defineComponent } from 'vue';
-    import { IonContent, IonPage, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon } from '@ionic/vue';
-  
-    export default defineComponent({
-      components: {
-        IonContent,
-        IonPage,
-        IonGrid,
-        IonRow,
-        IonCol,
-        IonCard,
-        IonCardContent,
-        IonCardHeader,
-        IonCardTitle,
-        IonIcon
-      }
-    });
-  </script>
-  
+  <div class="main-content">
+    <div class="animated-cards">
+      <div class="card" (click)="browseProducts()">
+        <ion-icon name="apps-outline"></ion-icon>
+        <h2>Browse Products</h2>
+        <p>Explore our wide range of products</p>
+      </div>
+      <div class="card" (click)="viewPromotions()">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <h2>View Promotions</h2>
+        <p>Check out our latest deals and offers</p>
+      </div>
+      <div class="card" (click)="viewAccount()">
+        <ion-icon name="person-outline"></ion-icon>
+        <h2>View Account</h2>
+        <p>Manage your profile and orders</p>
+      </div>
+    </div>
+  </div>
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar>
+    <ion-title size="small">&copy; 2024 Inventory Store</ion-title>
+  </ion-toolbar>
+</ion-footer>

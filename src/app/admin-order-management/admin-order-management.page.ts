@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-admin-order-management',
@@ -7,9 +8,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AdminOrderManagementPage implements OnInit {
 
-  constructor() { }
+  orderData: any[] = [];
+
+  constructor(private http: HttpClient) { }
 
   ngOnInit() {
+    this.fetchOrders();
   }
 
+  fetchOrders() {
+    this.http.get<{ orderData: any[] }>('http://localhost/user_api/orders.php')
+      .subscribe(response => {
+        this.orderData = response.orderData;
+      });
+  }
 }

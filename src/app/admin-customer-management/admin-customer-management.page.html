@@ -13,16 +13,9 @@
   </ion-header>
 
   <!-- Search Bar -->
-  <ion-searchbar placeholder="Search customers"></ion-searchbar>
+  <!-- Search Bar -->
+<ion-searchbar [(ngModel)]="searchQuery" (ionChange)="filterUsers()" placeholder="Search customers"></ion-searchbar>
 
-  <!-- Filter Options -->
-  <ion-item>
-    <ion-label>Filter By</ion-label>
-    <ion-select placeholder="Select Filter">
-      <ion-select-option value="status">Status</ion-select-option>
-      <ion-select-option value="date">Date</ion-select-option>
-    </ion-select>
-  </ion-item>
 
   <!-- Customer List -->
   <ion-card>
@@ -41,7 +34,7 @@
         </ion-row>
 
         <!-- Add customer rows here -->
-        <ion-row *ngFor="let user of users">
+        <ion-row *ngFor="let user of filteredUsers">
           <ion-col>{{ user.user_id }}</ion-col>
           <ion-col>{{ user.first_name }} {{ user.last_name }}</ion-col>
           <ion-col>{{ user.email }}</ion-col>
@@ -55,12 +48,4 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- Action Buttons -->
-  <ion-footer>
-    <ion-toolbar>
-      <ion-buttons slot="end">
-        <ion-button expand="full" color="success">Add New Customer</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-footer>
 </ion-content>

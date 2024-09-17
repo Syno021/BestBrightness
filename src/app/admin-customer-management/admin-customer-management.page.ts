@@ -19,6 +19,11 @@ interface User {
 export class AdminCustomerManagementPage implements OnInit {
   users: User[] = [];
 
+  searchQuery: string = '';
+  selectedFilter: string = '';
+
+  filteredUsers: any[] = [];
+
   constructor(
     private http: HttpClient,
     private toastController: ToastController,
@@ -35,6 +40,7 @@ export class AdminCustomerManagementPage implements OnInit {
         data => {
           console.log('Fetched customers:', data);
           this.users = data;
+          this.filterUsers();  // Apply filter after loading customers
         },
         (error: HttpErrorResponse) => {
           console.error('Error fetching customers:', error);
@@ -42,6 +48,28 @@ export class AdminCustomerManagementPage implements OnInit {
         }
       );
   }
+
+  filterUsers() {
+    // Normalize the search query for easier matching
+    const search = this.searchQuery.toLowerCase();
+  
+    // Apply search and role filter
+    this.filteredUsers = this.users.filter(user => {
+      const matchesSearch =
+        user.first_name.toLowerCase().includes(search) ||
+        user.last_name.toLowerCase().includes(search) ||
+        user.email.toLowerCase().includes(search) ||
+        user.role.toLowerCase().includes(search);
+  
+      const matchesRole =
+        this.selectedFilter === '' || 
+        this.selectedFilter === 'all' || 
+        user.role.toLowerCase() === this.selectedFilter.toLowerCase();
+  
+      return matchesSearch && matchesRole;
+    });
+  }
+  
 
   async editUser(user: User) {
     const alert = await this.alertController.create({
@@ -81,24 +109,42 @@ export class AdminCustomerManagementPage implements OnInit {
   }
 
   async deleteUser(user_id: number) {
-    const confirm = window.confirm('Are you sure you want to delete this customer?');
-    if (confirm) {
-      this.http.delete<{status: number, message: string}>(`http://localhost/user_api/register.php?user_id=${user_id}`)
-        .subscribe(
-          async (response) => {
-            if (response.status === 1) {
-              await this.presentToast('Customer deleted successfully', 'success');
-              this.loadCustomers();
-            } else {
-              await this.presentToast('Deletion failed: ' + response.message, 'danger');
-            }
-          },
-          async (error: HttpErrorResponse) => {
-            console.error('Error during deletion:', error);
-            await this.presentToast('Error during deletion: ' + error.message, 'danger');
+    const alert = await this.alertController.create({
+      header: 'Confirm Delete',
+      message: 'Are you sure you want to delete this customer?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {
+            console.log('Delete canceled');
           }
-        );
-    }
+        },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            this.http.delete<{ status: number, message: string }>(`http://localhost/user_api/register.php?user_id=${user_id}`)
+              .subscribe(
+                async (response) => {
+                  if (response.status === 1) {
+                    await this.presentToast('Customer deleted successfully', 'success');
+                    this.loadCustomers(); // Refresh the list after deletion
+                  } else {
+                    await this.presentToast('Deletion failed: ' + response.message, 'danger');
+                  }
+                },
+                async (error: HttpErrorResponse) => {
+                  console.error('Error during deletion:', error);
+                  await this.presentToast('Error during deletion: ' + error.message, 'danger');
+                }
+              );
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   async presentToast(message: string, color: 'success' | 'danger') {

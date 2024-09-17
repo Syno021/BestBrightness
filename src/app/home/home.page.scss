@@ -1,47 +1,150 @@
-/* Add your global CSS here for colors, headers, and footers */
-.hero-section {
+ion-content {
+  --background: transparent;
+}
+
+.hero {
+  height: 100vh;
+  width: 100%;
+  background-image: url('/assets/hero.jpg');
+  background-size: cover;
+  background-position: center;
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 400px;
-  background-color: var(--primary-color);
+  justify-content: center;
+  text-align: center;
   position: relative;
 }
 
-.fade-image {
+.hero::after {
+  content: '';
   position: absolute;
-  opacity: 0;
-  transition: opacity 1s ease-in-out;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
 }
 
-.fade-image.active {
-  opacity: 1;
+.hero-content {
+  z-index: 1;
+  color: #ffffff;
+  padding: 2rem;
+  max-width: 600px;
 }
 
-.info-cards {
-  padding: 20px;
+.hero h1 {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
 }
 
-.scroll-container {
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.hero-buttons {
   display: flex;
-  overflow-x: auto;
-  padding: 10px;
+  justify-content: center;
+  gap: 1rem;
 }
 
-.scroll-container ion-card {
-  flex: 0 0 auto;
-  margin-right: 15px;
+.hero-buttons ion-button {
+  flex: 1;
+  max-width: 200px;
 }
 
-.other-info {
-  padding: 20px;
-  background-color: white;
-  color: var(--text-color);
-}
-
-.footer {
-  background-color: var(--primary-color);
+.hero-buttons .login {
   color: white;
-  padding: 20px;
+  border-color: white;
+}
+
+.main-content {
+  padding: 2rem;
+  background: #f4f5f8;
+}
+
+.animated-cards {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 380px;
   text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.card ion-icon {
+  font-size: 3rem;
+  color: #3880ff;
+  margin-bottom: 1rem;
+}
+
+.card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #333333;
+}
+
+.card p {
+  font-size: 1rem;
+  color: #666666;
+}
+
+ion-toolbar {
+  --background: transparent;
+  --color: #ffffff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Simple Footer Styles */
+ion-footer {
+  background: #f4f5f8;
+  border-top: 1px solid #dddddd;
+}
+
+ion-footer ion-toolbar {
+  --background: transparent;
+  --color: #333333;
+  --min-height: 44px;
+  position: static;
+}
+
+ion-footer ion-title {
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Burger menu visibility for mobile */
+.burger-icon {
+  display: none;
+}
+
+.desktop-nav {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .burger-icon {
+    display: block;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
 }
