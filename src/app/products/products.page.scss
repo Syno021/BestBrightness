@@ -1,0 +1,37 @@
+ion-content ion-toolbar {
+    --background: translucent;
+  }
+  
+  ion-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+  }
+  
+  ion-label {
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+
+  ion-item h2 {
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  ion-item p {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 95%;
+  }
+  
+  ion-item .price {
+    color: #888;
+    font-size: 14px;
+    float: right;
+    width: 30%;
+    text-align: right;
+  }
+  
+  ion-item ion-icon {
+    color: #c9c9ca;
+  }

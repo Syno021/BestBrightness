@@ -39,6 +39,39 @@ const routes: Routes = [
     path: 'signup',
     loadChildren: () => import('./signup/signup.module').then( m => m.SignupPageModule)
   },
+  {
+    path: 'pos',
+    loadChildren: () => import('./pos/pos.module').then( m => m.POSPageModule)
+  },
+  {
+    path: 'home',
+    loadChildren: () => import('./home/home.module').then(m => m.HomePageModule)
+  },
+  {
+    path: 'products',
+    loadChildren: () => import('./products/products.module').then(m => m.ProductsPageModule)
+  },
+  {
+    path: 'promotions',
+    loadChildren: () => import('./promotions/promotions.module').then(m => m.PromotionsPageModule)
+  },
+  {
+    path: 'account',
+    loadChildren: () => import('./account/account.module').then(m => m.AccountPageModule)
+  },  {
+    path: 'products',
+    loadChildren: () => import('./products/products.module').then( m => m.ProductsPageModule)
+  },
+  {
+    path: 'promotions',
+    loadChildren: () => import('./promotions/promotions.module').then( m => m.PromotionsPageModule)
+  },
+  {
+    path: 'account',
+    loadChildren: () => import('./account/account.module').then( m => m.AccountPageModule)
+  }
+
+
 ];
 
 @NgModule({

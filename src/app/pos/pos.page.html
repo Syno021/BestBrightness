@@ -1,0 +1,133 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Best Brightness POS</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="end">
+        <ion-text>{{ currentDate | date:'short' }}</ion-text>
+        <ion-text class="ion-padding-horizontal">Employee: Nompilo (ID: 12345)</ion-text>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12">
+        <ion-searchbar placeholder="Search products or scan barcode" (ionChange)="searchProducts($event)"></ion-searchbar>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="3">
+        <ion-list>
+          <ion-item button *ngFor="let category of categories" (click)="selectCategory(category)">
+            <ion-icon [name]="category.icon" slot="start"></ion-icon>
+            <ion-label>{{ category.name }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-col>
+      <ion-col size="6">
+        <ion-grid>
+          <ion-row>
+            <ion-col size="4" *ngFor="let product of products">
+              <ion-card>
+                <img [src]="product.image" />
+                <ion-card-header>
+                  <ion-card-title>{{ product.name }}</ion-card-title>
+                  <ion-card-subtitle>R{{ product.price.toFixed(2) }}</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-text>Stock: {{ product.stock }}</ion-text>
+                  <br>
+                  <ion-text>Barcode: {{ product.barcode }}</ion-text>
+                  <ion-button expand="block" (click)="addToCart(product)">Add to Cart</ion-button>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-col>
+      <ion-col size="3">
+        <ion-list>
+          <ion-list-header>
+            <ion-label>Cart</ion-label>
+          </ion-list-header>
+          <ion-item *ngFor="let item of cart">
+            <ion-label>{{ item.name }}</ion-label>
+            <ion-text slot="end">R{{ item.price.toFixed(2) }}</ion-text>
+            <ion-button fill="clear" slot="end" (click)="removeFromCart(item)">
+              <ion-icon name="remove-circle-outline"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </ion-list>
+        <ion-item>
+          <ion-label>Subtotal</ion-label>
+          <ion-text slot="end">R{{ getSubtotal().toFixed(2) }}</ion-text>
+        </ion-item>
+        <ion-item>
+          <ion-label>Tax</ion-label>
+          <ion-text slot="end">R{{ getTax().toFixed(2) }}</ion-text>
+        </ion-item>
+        <ion-item>
+          <ion-label>Total</ion-label>
+          <ion-text slot="end">R{{ getTotal().toFixed(2) }}</ion-text>
+        </ion-item>
+        <ion-item>
+          <ion-input [(ngModel)]="barcodeInput" placeholder="Enter Barcode" (keyup.enter)="onBarcodeEnter()"></ion-input>
+        </ion-item>
+        
+        <!-- Numpad -->
+        <ion-grid>
+          <ion-row>
+            <ion-col size="4" *ngFor="let num of [1,2,3,4,5,6,7,8,9,'C',0,'Enter']">
+              <ion-button expand="block" (click)="num === 'C' ? clearNumpad() : num === 'Enter' ? submitNumpad() : appendToNumpad(num.toString())">
+                {{num}}
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-footer>
+    <ion-toolbar>
+      <!-- Redesigned payment type segment with icons for better visual clarity -->
+      <ion-segment [(ngModel)]="paymentType" color="primary">
+        <ion-segment-button value="cash">
+          <ion-icon name="cash-outline"></ion-icon>
+          <ion-label>Cash</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="card">
+          <ion-icon name="card-outline"></ion-icon>
+          <ion-label>Card</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ion-toolbar>
+  
+    <ion-toolbar>
+      <ion-grid>
+        <ion-row>
+          <!-- Expanded Checkout Button with large size and bold color -->
+          <ion-col size="9">
+            <ion-button expand="block" size="large" (click)="checkout()" [disabled]="!paymentType">
+              <ion-icon name="cart-outline" slot="start"></ion-icon>
+              Checkout
+            </ion-button>
+          </ion-col>
+          <!-- Print Receipt Button styled differently with a border to stand out -->
+          <ion-col size="3">
+            <ion-button expand="block" shape="round" fill="outline" (click)="printReceipt()" [disabled]="!isCheckoutComplete">
+              <ion-icon name="print-outline" slot="start"></ion-icon>
+              Print Receipt
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-toolbar>
+  </ion-footer>
+  
+</ion-content>
