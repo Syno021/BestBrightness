@@ -1,33 +1,40 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Promotions</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="sparkles-outline"></ion-icon>
+      Bestbrightness Deals
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">promotions</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <ion-list>
-    <ion-item *ngFor="let promo of promotions">
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title>{{ promo.title }}</ion-card-title>
-          <ion-card-subtitle>{{ promo.discount }}% Off</ion-card-subtitle>
-        </ion-card-header>
-        <ion-card-content>
-          <p>{{ promo.description }}</p>
-          <p *ngIf="isPromotionValid(promo.endDate)">
-            Days remaining: {{ getDaysRemaining(promo.endDate) }}
-          </p>
-          <p *ngIf="!isPromotionValid(promo.endDate)" class="expired">
-            Expired
-          </p>
-        </ion-card-content>
-      </ion-card>
-    </ion-item>
-  </ion-list>
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="background-container">
+    <div class="content-container">
+      <ion-grid>
+        <ion-row>
+          <ion-col size-md="6" size-lg="4" *ngFor="let promo of promotions">
+            <ion-card class="promo-card">
+              <!-- <img [src]="promo.imageUrl" [alt]="promo.title"/> -->
+              <ion-card-header>
+                <ion-card-subtitle>{{ promo.discount }}% OFF</ion-card-subtitle>
+                <ion-card-title>{{ promo.title }}</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <p>{{ promo.description }}</p>
+                <ion-chip [color]="isPromotionValid(promo.endDate) ? 'success' : 'danger'" outline="true">
+                  <ion-icon [name]="isPromotionValid(promo.endDate) ? 'time-outline' : 'alert-circle-outline'"></ion-icon>
+                  <ion-label>
+                    {{ isPromotionValid(promo.endDate) ? getDaysRemaining(promo.endDate) + ' days left' : 'Expired' }}
+                  </ion-label>
+                </ion-chip>
+              </ion-card-content>
+              <ion-button expand="block" fill="clear" [disabled]="!isPromotionValid(promo.endDate)">
+                Shop Now
+              </ion-button>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </div>
 </ion-content>

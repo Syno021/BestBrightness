@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { MenuController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -7,20 +8,21 @@ import { MenuController } from '@ionic/angular';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
-  constructor(private menu: MenuController) {}
+  constructor(private menu: MenuController,
+    private router: Router
+  ) {}
 
   openMenu() {
     this.menu.open();
   }
 
   browseProducts() {
-    console.log('Navigating to products page');
+    this.router.navigate(['/products']);
     // Add navigation logic here
   }
 
   viewPromotions() {
-    console.log('Navigating to promotions page');
-    // Add navigation logic here
+    this.router.navigate(['/promotions']);
   }
 
   viewAccount() {
