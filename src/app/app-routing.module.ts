@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
 
 const routes: Routes = [
   {
@@ -58,7 +59,8 @@ const routes: Routes = [
   {
     path: 'account',
     loadChildren: () => import('./account/account.module').then(m => m.AccountPageModule)
-  },  {
+  },
+  {
     path: 'products',
     loadChildren: () => import('./products/products.module').then( m => m.ProductsPageModule)
   },
@@ -69,14 +71,17 @@ const routes: Routes = [
   {
     path: 'account',
     loadChildren: () => import('./account/account.module').then( m => m.AccountPageModule)
-  }
-
+  },  {
+    path: 'cart',
+    loadChildren: () => import('./cart/cart.module').then( m => m.CartPageModule)
+  },
 
 ];
 
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+    // HttpClientModule,
   ],
   exports: [RouterModule]
 })
