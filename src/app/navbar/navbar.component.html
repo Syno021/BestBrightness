@@ -1,53 +1,31 @@
-<!-- Regular Navbar for Larger Screens -->
-<ion-header *ngIf="showNavbar && !isOnAdminPage" [ngClass]="{ 'nav-hidden': isNavbarHidden }">
+<ion-split-pane contentId="main-content">
+  <!-- Side menu -->
+  <ion-menu contentId="main-content" type="overlay" *ngIf="showNavbar">
+    <ion-content>
+      <ion-list id="inbox-list">
+        <ion-list-header>{{ isAdminPage ? 'Admin Menu' : 'Menu' }}</ion-list-header>
+        <ion-note>{{ isAdminPage ? 'Admin User' : 'Welcome' }}</ion-note>
+
+        <ion-menu-toggle auto-hide="false" *ngFor="let p of (isAdminPage ? adminPages : regularPages)">
+          <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false" routerLinkActive="selected">
+            <ion-icon slot="start" [name]="p.icon"></ion-icon>
+            <ion-label>{{ p.title }}</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <!-- Main content -->
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+</ion-split-pane>
+
+<!-- Toolbar -->
+<ion-header *ngIf="showNavbar">
   <ion-toolbar>
-    <ion-title>My App</ion-title>
-    <ion-buttons slot="end" class="desktop-navbar">
-      <ion-button routerLink="/home">Home</ion-button>
-      <ion-button routerLink="/contact">Contact</ion-button>
-      <ion-button routerLink="/about">About</ion-button>
-      <ion-button routerLink="/view">View</ion-button>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
+    <ion-title>{{ isAdminPage ? 'Admin' : 'My App' }}</ion-title>
   </ion-toolbar>
 </ion-header>
-
-<!-- Admin Navbar for Larger Screens -->
-<ion-header *ngIf="showNavbar && isOnAdminPage" [ngClass]="{ 'nav-hidden': isNavbarHidden }">
-  <ion-toolbar>
-    <ion-title>Admin</ion-title>
-    <ion-buttons slot="end" class="desktop-navbar">
-      <ion-button routerLink="/admin-dashboard">Dashboard</ion-button>
-      <ion-button routerLink="/admin-inventory-management">Inventory</ion-button>
-      <ion-button routerLink="/admin-customer-management">Customers</ion-button>
-      <ion-button routerLink="/admin-sales-report">Sales Report</ion-button>
-      <ion-button routerLink="/admin-order-management">Orders</ion-button>
-      <ion-button routerLink="/admin-user-management">Users</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<!-- Mobile Menu -->
-<ion-menu side="start" menuId="first" contentId="main-content" *ngIf="showNavbar">
-  <ion-header>
-    <ion-toolbar color="primary">
-      <ion-title>Menu</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <ion-content>
-    <ion-list *ngIf="!isOnAdminPage">
-      <ion-item routerLink="/home">Home</ion-item>
-      <ion-item routerLink="/contact">Contact</ion-item>
-      <ion-item routerLink="/about">About</ion-item>
-      <ion-item routerLink="/view">View</ion-item>
-    </ion-list>
-    <ion-list *ngIf="isOnAdminPage">
-      <ion-item routerLink="/admin-dashboard">Dashboard</ion-item>
-      <ion-item routerLink="/admin-inventory-management">Inventory</ion-item>
-      <ion-item routerLink="/admin-customer-management">Customers</ion-item>
-      <ion-item routerLink="/admin-sales-report">Sales Report</ion-item>
-      <ion-item routerLink="/admin-order-management">Orders</ion-item>
-      <ion-item routerLink="/admin-user-management">Users</ion-item>
-    </ion-list>
-  </ion-content>
-</ion-menu>
