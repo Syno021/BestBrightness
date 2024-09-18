@@ -65,7 +65,7 @@ export class CartPage implements OnInit {
 
 const alert = await this.alertController.create({
   header: 'Order Placed',
-  message: `Your order for $${this.total.toFixed(2)} has been placed successfully!`,
+  message: `Your order for R${this.total.toFixed(2)} has been placed successfully!`,
   buttons: [
       {
         text: 'OK',

@@ -47,7 +47,7 @@ export class ProductsPage implements OnInit {
   selectedCategory: string = 'All';
   sortOption: string = 'name';
 
-  constructor(private cartservice: CartService, private toastController: ToastController, private router: Router) { }
+  constructor(private cartservice: CartService, private navCtrl: NavController, private toastController: ToastController, private router: Router) { }
 
   ngOnInit() {
     this.applyFilters();
@@ -55,15 +55,15 @@ export class ProductsPage implements OnInit {
 
   // Search for products based on search term
   
-
+  navigateToCart() {
+    this.navCtrl.navigateForward('/cart');
+  }
 
   searchProducts() {
     this.applyFilters();
   }
 
-  navigateToCart() {
-    this.router.navigate(['/cart']);
-  }
+
 
   // Filter products by category
   filterByCategory(category: string) {
