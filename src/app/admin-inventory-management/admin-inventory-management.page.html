@@ -139,11 +139,46 @@
             <ion-label position="floating">Image URL</ion-label>
             <ion-input type="text" [(ngModel)]="newItem.image_url" name="image_url"></ion-input>
           </ion-item>
+
+          <!-- Cover Image Upload -->
+          <ion-item>
+            <ion-label position="stacked">Cover Image</ion-label>
+            <ion-button expand="block" (click)="takePicture(true)">
+              <ion-icon name="camera-outline" slot="start"></ion-icon>
+              Upload Cover Image
+            </ion-button>
+            <ion-thumbnail *ngIf="coverImageBase64" class="ion-margin-top">
+              <img [src]="'data:image/jpeg;base64,' + coverImageBase64" alt="Cover Image">
+            </ion-thumbnail>
+          </ion-item>
+
+          <!-- Additional Images Upload -->
+          <ion-item>
+            <ion-label position="stacked">Additional Images</ion-label>
+            <ion-button expand="block" (click)="takePicture(false)">
+              <ion-icon name="images-outline" slot="start"></ion-icon>
+              Add Additional Image
+            </ion-button>
+            <ion-grid>
+              <ion-row>
+                <ion-col size="4" *ngFor="let img of additionalImagesBase64; let i = index">
+                  <ion-thumbnail>
+                    <img [src]="'data:image/jpeg;base64,' + img" alt="Additional Image">
+                    <ion-button fill="clear" (click)="removeAdditionalImage(i)">
+                      <ion-icon name="close-circle"></ion-icon>
+                    </ion-button>
+                  </ion-thumbnail>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-item>
+
           <ion-button expand="block" type="submit" class="ion-margin-top">Add Item</ion-button>
         </form>
       </ion-content>
     </ng-template>
   </ion-modal>
+
 
   <!-- Action Buttons -->
   <ion-footer>

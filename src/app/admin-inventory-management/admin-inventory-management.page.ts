@@ -1,7 +1,16 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { IonModal } from '@ionic/angular';
-import { AlertController, ToastController } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { AngularFireStorage } from '@angular/fire/compat/storage';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { finalize } from 'rxjs/operators';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import {
+  AlertController,
+  LoadingController,
+  ModalController,
+  ToastController,
+} from '@ionic/angular';
 
 interface Product {
   product_id: number;
@@ -12,6 +21,7 @@ interface Product {
   description: string;
   price: number;
   image_url: string;
+  additional_images?: string[];
 }
 
 @Component({
@@ -30,18 +40,24 @@ export class AdminInventoryManagementPage implements OnInit {
     barcode: '',
     description: '',
     price: 0,
-    image_url: ''
+    image_url: '',
+    additional_images: []
   };
   
   products: Product[] = [];
   fastMoving: Product[] = [];
   slowMoving: Product[] = [];
   lowStockAlert: Product[] = [];
+  coverImageBase64: string = '';
+  additionalImagesBase64: string[] = [];
 
   constructor(
     private http: HttpClient,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private loadingController: LoadingController,
+    private firestore: AngularFirestore,
+    private storage: AngularFireStorage,
   ) { }
 
   ngOnInit() {
@@ -79,23 +95,110 @@ export class AdminInventoryManagementPage implements OnInit {
   }
 
   async submitForm() {
-    this.http.post<{status: number, message: string}>('http://localhost/user_api/products.php', this.newItem)
-      .subscribe(
-        async (response) => {
-          if (response.status === 1) {
-            await this.presentToast('Product added successfully', 'success');
-            this.dismissModal();
-            this.loadProducts();
-          } else {
-            await this.presentToast('Submission failed: ' + response.message, 'danger');
-          }
-        },
-        async (error: HttpErrorResponse) => {
-          console.error('Error during submission:', error);
-          await this.presentToast('Error during submission: ' + error.message, 'danger');
-        }
-      );
+    const loading = await this.loadingController.create({
+      message: 'Uploading product...',
+    });
+    await loading.present();
+
+    try {
+      // Upload cover image
+      if (this.coverImageBase64) {
+        const coverImageUrl = await this.uploadImage(this.coverImageBase64);
+        this.newItem.image_url = coverImageUrl;
+      }
+
+      // Upload additional images
+      if (this.additionalImagesBase64.length > 0) {
+        this.newItem.additional_images = await Promise.all(
+          this.additionalImagesBase64.map(async img => {
+            const loadingImage = await this.loadingController.create({
+              message: 'Uploading additional image...',
+            });
+            await loadingImage.present();
+            const imageUrl = await this.uploadImage(img);
+            await loadingImage.dismiss();
+            return imageUrl;
+          })
+        );
+      }
+
+      // Save to MySQL
+      const response = await this.http.post<{status: number, message: string, product_id: number}>(
+        'http://localhost/user_api/products.php', 
+        this.newItem
+      ).toPromise();
+
+      if (response && response.status === 1) {
+        // Save to Firestore
+        await this.firestore.collection('products').doc(response.product_id.toString()).set(this.newItem);
+        
+        await this.presentToast('Product added successfully', 'success');
+        this.dismissModal();
+        this.loadProducts();
+      } else {
+        await this.presentToast('Submission failed: ' + (response ? response.message : 'Unknown error'), 'danger');
+      }
+    } catch (error) {
+      console.error('Error during submission:', error);
+      await this.presentToast('Error during submission: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
+    } finally {
+      await loading.dismiss();
+    }
   }
+
+  async takePicture(isCover: boolean = true) {
+    const loading = await this.loadingController.create({
+      message: 'Opening camera...',
+    });
+    await loading.present();
+
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: true,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Prompt, // Allow users to choose between camera and gallery
+      });
+
+      if (isCover) {
+        this.coverImageBase64 = image.base64String || '';
+      } else {
+        this.additionalImagesBase64.push(image.base64String || '');
+      }
+
+      await this.presentToast('Image selected successfully', 'success');
+    } catch (error) {
+      console.error('Error taking picture:', error);
+      await this.presentToast('Error taking picture: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  async uploadImage(base64Image: string): Promise<string> {
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const filePath = `product_images/${fileName}.jpg`;
+    const fileRef = this.storage.ref(filePath);
+    const task = fileRef.putString(base64Image, 'base64', { contentType: 'image/jpeg' });
+
+    return new Promise((resolve, reject) => {
+      task.snapshotChanges().pipe(
+        finalize(async () => {
+          try {
+            const downloadUrl = await fileRef.getDownloadURL().toPromise();
+            resolve(downloadUrl);
+          } catch (error) {
+            reject(error);
+          }
+        })
+      ).subscribe();
+    });
+  }
+
+  removeAdditionalImage(index: number) {
+    this.additionalImagesBase64.splice(index, 1);
+  }
+
 
   async presentToast(message: string, color: 'success' | 'warning' | 'danger') {
     const toast = await this.toastController.create({
