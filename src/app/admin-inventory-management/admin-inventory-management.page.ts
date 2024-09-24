@@ -99,14 +99,14 @@ export class AdminInventoryManagementPage implements OnInit {
       message: 'Uploading product...',
     });
     await loading.present();
-
+  
     try {
       // Upload cover image
       if (this.coverImageBase64) {
         const coverImageUrl = await this.uploadImage(this.coverImageBase64);
         this.newItem.image_url = coverImageUrl;
       }
-
+  
       // Upload additional images
       if (this.additionalImagesBase64.length > 0) {
         this.newItem.additional_images = await Promise.all(
@@ -121,17 +121,20 @@ export class AdminInventoryManagementPage implements OnInit {
           })
         );
       }
-
-      // Save to MySQL
+  
+      // Save to MySQL and get the product_id
       const response = await this.http.post<{status: number, message: string, product_id: number}>(
         'http://localhost/user_api/products.php', 
         this.newItem
       ).toPromise();
-
-      if (response && response.status === 1) {
-        // Save to Firestore
-        await this.firestore.collection('products').doc(response.product_id.toString()).set(this.newItem);
-        
+  
+      if (response && response.status === 1 && response.product_id) {
+        // Set product_id to the response product_id
+        this.newItem.product_id = response.product_id;
+  
+        // Save to Firestore using the product_id from MySQL (without converting to string)
+        await this.firestore.collection('products').doc(`${response.product_id}`).set(this.newItem);
+  
         await this.presentToast('Product added successfully', 'success');
         this.dismissModal();
         this.loadProducts();
@@ -145,10 +148,12 @@ export class AdminInventoryManagementPage implements OnInit {
       await loading.dismiss();
     }
   }
+  
+     
 
-  async takePicture(isCover: boolean = true) {
+  async takeCoverPicture() {
     const loading = await this.loadingController.create({
-      message: 'Opening camera...',
+        message: 'Opening camera for cover image...',
     });
     await loading.present();
 
@@ -157,23 +162,46 @@ export class AdminInventoryManagementPage implements OnInit {
         quality: 90,
         allowEditing: true,
         resultType: CameraResultType.Base64,
-        source: CameraSource.Prompt, // Allow users to choose between camera and gallery
-      });
+        source: CameraSource.Camera, // or CameraSource.Photos for the gallery
+    });
+    
 
-      if (isCover) {
         this.coverImageBase64 = image.base64String || '';
-      } else {
-        this.additionalImagesBase64.push(image.base64String || '');
-      }
-
-      await this.presentToast('Image selected successfully', 'success');
+        await this.presentToast('Cover image selected successfully', 'success');
     } catch (error) {
-      console.error('Error taking picture:', error);
-      await this.presentToast('Error taking picture: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
+        console.error('Error taking cover picture:', error);
+        await this.presentToast('Error taking cover picture: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
     } finally {
-      await loading.dismiss();
+        await loading.dismiss();
     }
-  }
+}
+
+async takeAdditionalPicture() {
+    const loading = await this.loadingController.create({
+        message: 'Opening camera for additional image...',
+    });
+    await loading.present();
+
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: true,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera, // or CameraSource.Photos for the gallery
+    });
+    
+
+        this.additionalImagesBase64.push(image.base64String || '');
+        await this.presentToast('Additional image selected successfully', 'success');
+    } catch (error) {
+        console.error('Error taking additional picture:', error);
+        await this.presentToast('Error taking additional picture: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
+    } finally {
+        await loading.dismiss();
+    }
+}
+
+
 
   async uploadImage(base64Image: string): Promise<string> {
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}`;

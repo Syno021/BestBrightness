@@ -139,14 +139,15 @@
             <ion-label position="floating">Image URL</ion-label>
             <ion-input type="text" [(ngModel)]="newItem.image_url" name="image_url"></ion-input>
           </ion-item>
+        
 
           <!-- Cover Image Upload -->
           <ion-item>
             <ion-label position="stacked">Cover Image</ion-label>
-            <ion-button expand="block" (click)="takePicture(true)">
+            <ion-button expand="block" (click)="takeCoverPicture()">
               <ion-icon name="camera-outline" slot="start"></ion-icon>
               Upload Cover Image
-            </ion-button>
+          </ion-button>
             <ion-thumbnail *ngIf="coverImageBase64" class="ion-margin-top">
               <img [src]="'data:image/jpeg;base64,' + coverImageBase64" alt="Cover Image">
             </ion-thumbnail>
@@ -155,10 +156,10 @@
           <!-- Additional Images Upload -->
           <ion-item>
             <ion-label position="stacked">Additional Images</ion-label>
-            <ion-button expand="block" (click)="takePicture(false)">
+            <ion-button expand="block" (click)="takeAdditionalPicture()">
               <ion-icon name="images-outline" slot="start"></ion-icon>
               Add Additional Image
-            </ion-button>
+          </ion-button>
             <ion-grid>
               <ion-row>
                 <ion-col size="4" *ngFor="let img of additionalImagesBase64; let i = index">
