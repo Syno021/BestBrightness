@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController } from '@ionic/angular';
 
+
 interface Product {
   name: string;
   price: number;
@@ -8,7 +9,8 @@ interface Product {
   image: string;
   barcode: string;
   category: string;
-  quantity?: number; // Optional field for quantity when added to the cart
+  quantity?: number;
+  
 }
 
 @Component({
@@ -19,11 +21,13 @@ interface Product {
 export class POSPage implements OnInit {
   currentDate = new Date();
   categories = [
+    { name: 'All', icon: 'grid' },
     { name: 'Cleaning Chemicals', icon: 'flask' },
     { name: 'Cleaning Tools', icon: 'brush' },
     { name: 'Equipment', icon: 'construct' },
     { name: 'Paper & Disposables', icon: 'newspaper' },
   ];
+  selectedCategory: string = 'All';
   allProducts: Product[] = [
     { name: 'All-Purpose Cleaner', price: 149.99, stock: 50, image: 'assets/cleaner.jpg', barcode: '1001', category: 'Cleaning Chemicals' },
     { name: 'Glass Cleaner', price: 89.99, stock: 40, image: 'assets/glass-cleaner.jpg', barcode: '1002', category: 'Cleaning Chemicals' },
@@ -46,14 +50,18 @@ export class POSPage implements OnInit {
 
   searchProducts(event: any) {
     const searchTerm = event.target.value.toLowerCase();
-    this.products = this.allProducts.filter(product =>
-      product.name.toLowerCase().includes(searchTerm) ||
-      product.barcode.includes(searchTerm)
-    );
+    this.filterProducts(searchTerm);
   }
 
-  selectCategory(category: any) {
-    this.products = this.allProducts.filter(product => product.category === category.name);
+  onCategoryChange() {
+    this.filterProducts();
+  }
+
+  filterProducts(searchTerm: string = '') {
+    this.products = this.allProducts.filter(product =>
+      (this.selectedCategory === 'All' || product.category === this.selectedCategory) &&
+      (product.name.toLowerCase().includes(searchTerm) || product.barcode.includes(searchTerm))
+    );
   }
 
   addToCart(product: Product) {
@@ -63,21 +71,13 @@ export class POSPage implements OnInit {
       if (cartItem.quantity! < product.stock) {
         cartItem.quantity!++;
       } else {
-        this.alertController.create({
-          header: 'Out of Stock',
-          message: 'Not enough stock available.',
-          buttons: ['OK']
-        }).then(alert => alert.present());
+        this.showAlert('Out of Stock', 'Not enough stock available.');
       }
     } else {
       if (product.stock > 0) {
         this.cart.push({ ...product, quantity: 1 });
       } else {
-        this.alertController.create({
-          header: 'Out of Stock',
-          message: 'Product is out of stock.',
-          buttons: ['OK']
-        }).then(alert => alert.present());
+        this.showAlert('Out of Stock', 'Product is out of stock.');
       }
     }
   }
@@ -104,18 +104,9 @@ export class POSPage implements OnInit {
     return this.getSubtotal() + this.getTax();
   }
 
-  setPaymentType(type: string) {
-    this.paymentType = type;
-  }
-
   async checkout() {
     if (!this.paymentType) {
-      const alert = await this.alertController.create({
-        header: 'Payment Type Required',
-        message: 'Please select a payment type before checkout.',
-        buttons: ['OK']
-      });
-      await alert.present();
+      await this.showAlert('Payment Type Required', 'Please select a payment type before checkout.');
       return;
     }
 
@@ -147,40 +138,26 @@ export class POSPage implements OnInit {
       }
     });
 
-    this.alertController.create({
-      header: 'Transaction Complete',
-      message: 'Thank you for your purchase!',
-      buttons: ['OK']
-    }).then(alert => alert.present());
+    this.showAlert('Transaction Complete', 'Thank you for your purchase!');
 
     this.isCheckoutComplete = true;
-    this.cart = []; // Clear the cart
-    this.paymentType = ''; // Reset payment type
+    this.cart = [];
+    this.paymentType = '';
   }
 
   onBarcodeEnter() {
     const product = this.allProducts.find(p => p.barcode === this.barcodeInput);
     if (product) {
       this.addToCart(product);
-      this.barcodeInput = ''; // Clear the input
+      this.barcodeInput = '';
     } else {
-      // Show an alert for invalid barcode
-      this.alertController.create({
-        header: 'Invalid Barcode',
-        message: 'No product found with this barcode.',
-        buttons: ['OK']
-      }).then(alert => alert.present());
+      this.showAlert('Invalid Barcode', 'No product found with this barcode.');
     }
   }
 
-async printReceipt() {
+  async printReceipt() {
     if (!this.isCheckoutComplete) {
-      const alert = await this.alertController.create({
-        header: 'Cannot Print Receipt',
-        message: 'Please complete the checkout process before printing the receipt.',
-        buttons: ['OK']
-      });
-      await alert.present();
+      await this.showAlert('Cannot Print Receipt', 'Please complete the checkout process before printing the receipt.');
       return;
     }
 
@@ -234,7 +211,7 @@ async printReceipt() {
     });
 
     await alert.present();
-    this.isCheckoutComplete = false; // Reset checkout status after printing
+    this.isCheckoutComplete = false;
   }
 
   appendToNumpad(value: string) {
@@ -247,5 +224,14 @@ async printReceipt() {
 
   submitNumpad() {
     this.onBarcodeEnter();
+  }
+
+  private async showAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['OK']
+    });
+    await alert.present();
   }
 }
