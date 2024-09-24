@@ -96,18 +96,29 @@ export class AdminInventoryManagementPage implements OnInit {
 
   async submitForm() {
     const loading = await this.loadingController.create({
-      message: 'Uploading product...',
+      message: 'Checking for existing product...',
     });
     await loading.present();
   
     try {
-      // Upload cover image
+      // Check if the product already exists by name or barcode
+      const existingProductResponse = await this.http.get<{ status: number, message: string, product: any }>(
+        `http://localhost/user_api/products.php?name=${this.newItem.name}&barcode=${this.newItem.barcode}`
+      ).toPromise();
+  
+      if (existingProductResponse && existingProductResponse.status === 1 && existingProductResponse.product) {
+        await loading.dismiss();
+        await this.presentToast('Product with the same name or barcode already exists!', 'danger');
+        return; // Stop execution if the product already exists
+      }
+  
+      // Proceed with uploading the cover image if the product doesn't exist
       if (this.coverImageBase64) {
         const coverImageUrl = await this.uploadImage(this.coverImageBase64);
         this.newItem.image_url = coverImageUrl;
       }
   
-      // Upload additional images
+      // Upload additional images if any
       if (this.additionalImagesBase64.length > 0) {
         this.newItem.additional_images = await Promise.all(
           this.additionalImagesBase64.map(async img => {
@@ -123,8 +134,8 @@ export class AdminInventoryManagementPage implements OnInit {
       }
   
       // Save to MySQL and get the product_id
-      const response = await this.http.post<{status: number, message: string, product_id: number}>(
-        'http://localhost/user_api/products.php', 
+      const response = await this.http.post<{ status: number, message: string, product_id: number }>(
+        'http://localhost/user_api/products.php',
         this.newItem
       ).toPromise();
   
@@ -132,7 +143,7 @@ export class AdminInventoryManagementPage implements OnInit {
         // Set product_id to the response product_id
         this.newItem.product_id = response.product_id;
   
-        // Save to Firestore using the product_id from MySQL (without converting to string)
+        // Save to Firestore using the product_id from MySQL
         await this.firestore.collection('products').doc(`${response.product_id}`).set(this.newItem);
   
         await this.presentToast('Product added successfully', 'success');
@@ -148,6 +159,7 @@ export class AdminInventoryManagementPage implements OnInit {
       await loading.dismiss();
     }
   }
+  
   
      
 
