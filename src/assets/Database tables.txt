@@ -23,11 +23,14 @@ CREATE TABLE PRODUCTS (
     price DECIMAL(10, 2) NOT NULL,
     stock_quantity INT NOT NULL,
     category VARCHAR(100),
-    barcode VARCHAR(50),  -- Added barcode field
+    barcode VARCHAR(50),
     image_url VARCHAR(255),
+    total_ratings INT DEFAULT 0,     
+    average_rating DECIMAL(3, 2) DEFAULT 0.00, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
 
 
 
@@ -136,9 +139,20 @@ CREATE TABLE CUSTOMER_ADDRESSES (
     address_line1 VARCHAR(255) NOT NULL,
     address_line2 VARCHAR(255),
     city VARCHAR(100) NOT NULL,
-    state VARCHAR(100),
+    province VARCHAR(100),
     postal_code VARCHAR(20),
     country VARCHAR(100) NOT NULL,
     is_default BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES USERS(user_id)
 );
+
+CREATE TABLE user_ratings (
+    rating_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id),
+    UNIQUE(user_id, product_id) -- Ensures each user can only rate a product once
+);
+

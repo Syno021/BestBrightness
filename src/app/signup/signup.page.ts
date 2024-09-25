@@ -69,7 +69,19 @@ export class SignupPage implements OnInit {
           async (response: any) => {
             if (response.status === 1) {
               await this.presentToast('Login successful', 'success');
-              
+
+              // Store user info in session storage
+              sessionStorage.setItem('userEmail', response.email);
+              sessionStorage.setItem('userRole', response.role);
+              sessionStorage.setItem('userId', response.user_id);
+              sessionStorage.setItem('username', response.username);
+
+              // Log user details to the console
+              console.log("User logged in:");
+              console.log("Email: " + response.email);
+              console.log("User ID: " + response.user_id);
+              console.log("Username: " + response.username);
+
               // Navigate based on the role
               if (response.role === 'admin') {
                 this.router.navigate(['/admin-dashboard']); // Navigate to admin dashboard

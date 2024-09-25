@@ -96,7 +96,7 @@ export class AdminInventoryManagementPage implements OnInit {
 
   async submitForm() {
     const loading = await this.loadingController.create({
-      message: 'Checking for existing product...',
+      message: 'inserting products...',
     });
     await loading.present();
   

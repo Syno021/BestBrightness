@@ -47,7 +47,7 @@
     <ion-row>
       <ion-col size="12" size-sm="6" size-md="4" size-lg="3" *ngFor="let product of filteredProducts">
         <ion-card class="promo-card">
-          <img [src]="product.image" [alt]="product.name" />
+          <img [src]="product.image_url || product.image" [alt]="product.name" />
           <ion-card-header>
             <ion-card-subtitle>
               <ion-badge color="danger" *ngIf="product.isSale">SALE</ion-badge>
@@ -56,10 +56,20 @@
           </ion-card-header>
           <ion-card-content>
             <div class="price-rating">
-              <span class="price">R{{ product.price.toFixed(2) }}</span>
-              <ion-icon name="star" *ngFor="let star of [1, 2, 3, 4, 5]" [color]="star <= product.rating ? 'warning' : 'medium'"></ion-icon>
+              <span class="price">R{{ product.price }}</span>
+
+              <!-- Star Ratings -->
+              <ion-icon
+                name="star"
+                *ngFor="let star of [1, 2, 3, 4, 5]; let i = index"
+                [color]="star <= product.average_rating ? 'warning' : 'medium'"
+                (click)="rateProduct(product, star)">
+              </ion-icon>
+
+              <!-- Display average rating and total ratings -->
+              <span>({{ product.total_ratings }} ratings)</span>
             </div>
-            <ion-button  expand="block" fill="clear" (click)="addToCart(product)">Add to Cart</ion-button>
+            <ion-button expand="block" fill="clear" (click)="addToCart(product)">Add to Cart</ion-button>
           </ion-card-content>
         </ion-card>
       </ion-col>

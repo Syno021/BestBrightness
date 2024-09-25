@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CartService } from '../services/cart.service';
-import { Router } from '@angular/router';
-import { AlertController, AlertOptions } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-cart',
@@ -13,14 +13,19 @@ export class CartPage implements OnInit {
   subtotal: number = 0;
   tax: number = 0;
   total: number = 0;
+  quantity: number = 0;
 
   constructor(
-    private cartService: CartService, 
-    // private router: Router,
-     private alertController: AlertController 
+    private cartService: CartService,
+    private alertController: AlertController,
+    private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    this.loadCart();
+  }
+
+  loadCart() {
     this.cartService.getCart().subscribe(items => {
       this.cartItems = items;
       this.calculateTotals();
@@ -34,65 +39,70 @@ export class CartPage implements OnInit {
   }
 
   removeItem(productId: number) {
+    // Remove item from the cartService
     this.cartService.removeFromCart(productId);
+
+    // Update the local cartItems array and recalculate totals
+    this.cartItems = this.cartItems.filter(item => item.id !== productId);
+    this.calculateTotals();
+    
+    // Ensure the UI is updated by checking if the cart is empty
+    if (this.cartItems.length === 0) {
+      this.cartItems = []; // Clear the array to reflect an empty cart
+    }
   }
 
   increaseQuantity(productId: number) {
     const item = this.cartItems.find(i => i.id === productId);
     if (item) {
-      this.cartService.updateQuantity(productId, item.quantity + 1);
-    }
-  }
-
-  decreaseQuantity(productId: number) {
-    const item = this.cartItems.find(i => i.id === productId);
-    if (item && item.quantity > 1) {
-      this.cartService.updateQuantity(productId, item.quantity - 1);
+      item.quantity += 1; // Update the quantity locally
+      this.cartService.updateQuantity(productId, item.quantity); // Sync with cart service
+      this.calculateTotals(); // Recalculate totals
+      this.cd.detectChanges(); // Manually trigger change detection
     }
   }
   
-  proceedOrder = async (): Promise<void> => {
+  decreaseQuantity(productId: number) {
+    const item = this.cartItems.find(i => i.id === productId);
+    if (item && item.quantity > 1) {
+      item.quantity -= 1; // Update the quantity locally
+      this.cartService.updateQuantity(productId, item.quantity); // Sync with cart service
+      this.calculateTotals(); // Recalculate totals
+      this.cd.detectChanges(); // Manually trigger change detection
+    }
+  }
+  
+
+  async proceedOrder() {
     if (this.cartItems.length === 0) {
       const alert = await this.alertController.create({
         header: 'Empty Cart',
         message: 'Your cart is empty. Add some items before proceeding.',
         buttons: ['OK']
       });
-
       await alert.present();
       return;
     }
 
-const alert = await this.alertController.create({
-  header: 'Order Placed',
-  message: `Your order for R${this.total.toFixed(2)} has been placed successfully!`,
-  buttons: [
-      {
-        text: 'OK',
-        handler: () => {
-          this.cartService.clearCart();
-          this.cartItems = [];
-          this.calculateTotals();
-          alert.dismiss();
+    const alert = await this.alertController.create({
+      header: 'Order Placed',
+      message: `Your order for R${this.total.toFixed(2)} has been placed successfully!`,
+      buttons: [
+        {
+          text: 'OK',
+          handler: () => {
+            this.cartService.clearCart();
+            this.cartItems = [];
+            this.calculateTotals();
+          }
         }
-      }
-    ]
-  });
+      ]
+    });
+    await alert.present();
 
-  await alert.present();
-
-   // Automatically dismiss the alert after 3 seconds
-   setTimeout(() => {
-    alert.dismiss();
-  }, 3000);
-};
-
-
-  proceedToCheckout() {
-    // Your checkout logic here
+    // Automatically dismiss the alert after 3 seconds
+    setTimeout(() => {
+      alert.dismiss();
+    }, 3000);
   }
 }
-
-
-
-
