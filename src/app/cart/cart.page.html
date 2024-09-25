@@ -47,8 +47,57 @@
       </table>
     </div>
 
+
+    <ion-item-divider>
+      <ion-label>Delivery Method</ion-label>
+    </ion-item-divider>
+    <ion-radio-group [(ngModel)]="deliveryMethod">
+      <ion-item>
+        <ion-label>Delivery</ion-label>
+        <ion-radio value="delivery"></ion-radio>
+      </ion-item>
+      <ion-item>
+        <ion-label>Walk-in Collection</ion-label>
+        <ion-radio value="walk-in"></ion-radio>
+      </ion-item>
+    </ion-radio-group>
+
+    <div *ngIf="deliveryMethod === 'delivery'">
+      <ion-item-divider>
+        <ion-label>Shipping Information</ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-label position="stacked">Select Saved Address</ion-label>
+        <ion-select [(ngModel)]="selectedAddress">
+          <ion-select-option *ngFor="let address of savedAddresses" [value]="address">
+            {{ address.street }}, {{ address.city }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-button expand="block" (click)="addNewAddress()">Add New Address</ion-button>
+    </div>
+
+    <ion-item-divider>
+      <ion-label>Order Summary</ion-label>
+    </ion-item-divider>
+    <ion-item>
+      <ion-label>Subtotal</ion-label>
+      <ion-note slot="end">R{{ subtotal.toFixed(2) }}</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-label>Tax</ion-label>
+      <ion-note slot="end">R{{ tax.toFixed(2) }}</ion-note>
+    </ion-item>
+    <ion-item>
+      <ion-label>Total</ion-label>
+      <ion-note slot="end"><strong>R{{ total.toFixed(2) }}</strong></ion-note>
+    </ion-item>
+
+    <!-- <ion-button expand="block" (click)="processedToCheckout()">Proceed to Checkout</ion-button> -->
+  </div>
+
    <!-- src/app/cart/cart.page.html -->
 <!-- ... other code ... -->
-<ion-button expand="block" (click)="proceedOrder()">Proceed Order →</ion-button>
-  </div>
+<ion-button expand="block" (click)="PlaceOrder()">Proceed Order →</ion-button>
+
 </ion-content>

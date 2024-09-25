@@ -1,6 +1,11 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
+import { ShippingMethodPage } from './pages/checkout/shipping-method/shipping-method.page';
+import { ShippingAddressPage } from './pages/checkout/shipping-address/shipping-address.page';
+import { PaymentPage } from './pages/checkout/payment/payment.page';
+import { OrderSummaryPage } from './pages/checkout/order-summary/order-summary.page';
+import { ReactiveFormsModule } from '@angular/forms';
 
 const routes: Routes = [
   {
@@ -71,7 +76,8 @@ const routes: Routes = [
   {
     path: 'account',
     loadChildren: () => import('./account/account.module').then( m => m.AccountPageModule)
-  },  {
+  },
+  {
     path: 'cart',
     loadChildren: () => import('./cart/cart.module').then( m => m.CartPageModule)
   },
@@ -79,13 +85,45 @@ const routes: Routes = [
     path: 'about-us',
     loadChildren: () => import('./about-us/about-us.module').then( m => m.AboutUsPageModule)
   },
+  {
+    path: 'shipping-method',
+    loadChildren: () => import('./pages/checkout/shipping-method/shipping-method.module').then( m => m.ShippingMethodPageModule)
+  },
+  {
+    path: 'shipping-address',
+    loadChildren: () => import('./pages/checkout/shipping-address/shipping-address.module').then( m => m.ShippingAddressPageModule)
+  },
+  {
+    path: 'payment',
+    loadChildren: () => import('./pages/checkout/payment/payment.module').then( m => m.PaymentPageModule)
+  },
+  {
+    path: 'order-summary',
+    loadChildren: () => import('./pages/checkout/order-summary/order-summary.module').then( m => m.OrderSummaryPageModule)
+  },
+  {
+    path: 'order-history',
+    loadChildren: () => import('./pages/orders/order-history/order-history.module').then( m => m.OrderHistoryPageModule)
+  },
+  {
+    path: 'order-details',
+    loadChildren: () => import('./pages/orders/order-details/order-details.module').then( m => m.OrderDetailsPageModule)
+  },
+
+  { path: 'checkout/shipping-method', component: ShippingMethodPage },
+  { path: 'checkout/shipping-address', component: ShippingAddressPage },
+  { path: 'checkout/payment', component: PaymentPage },
+  { path: 'checkout/order-summary', component: OrderSummaryPage },
+  
 
 ];
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+    
+    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules }),
     // HttpClientModule,
+    ReactiveFormsModule
   ],
   exports: [RouterModule]
 })

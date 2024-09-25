@@ -11,7 +11,7 @@
     margin-bottom: 20px;
   
     th {
-      background-color: #ff523b;
+      background-color: #4a90e2;
       color: white;
       padding: 10px;
       text-align: left;
@@ -79,13 +79,39 @@
   }
   
   ion-button[expand="block"] {
-    --background: #ff523b;
+    --background: #4a90e2;
     --color: white;
     margin-top: 20px;
     height: 50px;
     font-size: 18px;
   }
 
+  .address-alert {
+    --max-height: 80%;
+    --max-width: 400px;
+  
+    
+    .alert-wrapper {
+      max-height: 100%;
+    }
+
+    .alert-input-group {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .address-input {
+      margin-bottom: 10px;
+    }
+  }
+  @media (max-height: 500px) {
+    .address-alert .alert-input-group {
+      max-height: 40vh;
+    }
+  }
+
+
+    
 // .header-row {
 //     background-color: #ff523b;
 //     color: white;
