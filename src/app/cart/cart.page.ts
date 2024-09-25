@@ -71,6 +71,16 @@ export class CartPage implements OnInit {
       this.cd.detectChanges(); // Manually trigger change detection
     }
   }
+
+  decreaseQuantity(productId: number) {
+    const item = this.cartItems.find(i => i.id === productId);
+    if (item && item.quantity > 1) {
+      item.quantity -= 1; // Update the quantity locally
+      this.cartService.updateQuantity(productId, item.quantity); // Sync with cart service
+      this.calculateTotals(); // Recalculate totals
+      this.cd.detectChanges(); // Manually trigger change detection
+    }
+  }
   
   async addNewAddress() {
     
