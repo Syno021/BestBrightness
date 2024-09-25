@@ -47,6 +47,7 @@
     .quantity-control {
       display: flex;
       align-items: center;
+      color: black;
   
       ion-button {
         --padding-start: 8px;
@@ -118,16 +119,16 @@
 //     font-weight: bold;
 //   }
   
-//   ion-img {
-//     max-width: 100px;
-//   }
+  ion-img {
+    max-width: 100px;
+  }
   
-//   ion-button[fill="clear"] {
-//     --color: #ff523b;
-//   }
+  ion-button[fill="clear"] {
+    --color: var(--ion-color-primary);
+  }
   
-//   ion-button[expand="block"] {
-//     --background: #ff523b;
-//     --color: white;
-//     margin: 16px;
-//   }
+  ion-button[expand="block"] {
+    background-color: var(--ion-color-primary);
+    --color: white;
+    margin: 16px;
+  }

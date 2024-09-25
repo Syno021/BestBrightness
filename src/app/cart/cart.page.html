@@ -1,6 +1,6 @@
 <ion-content class="ion-padding">
   <div class="cart-container">
-    <table class="cart-table">
+    <table class="cart-table" *ngIf="cartItems.length > 0; else emptyCart">
       <thead>
         <tr>
           <th>Product</th>
@@ -11,7 +11,7 @@
       <tbody>
         <tr *ngFor="let item of cartItems">
           <td class="product-info">
-            <ion-img [src]="item.image"></ion-img> <!-- Display product image -->
+            <ion-img [src]="item.image_url || item.image"></ion-img> <!-- Display product image -->
             <div>
               <h3>{{ item.name }}</h3>
               <p>Price: R{{ item.price.toFixed(2) }}</p>
@@ -29,6 +29,13 @@
         </tr>
       </tbody>
     </table>
+
+    <ng-template #emptyCart>
+      <div class="empty-cart-message">
+        <h3>Your cart is empty</h3>
+        <p>Add some items to your cart to see them here.</p>
+      </div>
+    </ng-template>
 
     <div class="cart-total">
       <table>

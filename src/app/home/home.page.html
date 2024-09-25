@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Inventory Store</ion-title>
+    <ion-title>Best Brightness</ion-title>
     <ion-buttons slot="start" class="burger-icon">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
@@ -34,14 +34,15 @@
       <h1>Welcome to Best Brighness</h1>
       <p>Find the best products at unbeatable prices!</p>
       <div class="hero-buttons">
-        <ion-button expand="block" size="large">
-          <ion-icon name="person-add-outline" slot="start"></ion-icon>
-          Register
-        </ion-button>
-        <ion-button class="login" expand="block" size="large" fill="outline">
+        <ion-button expand="block" size="large" (click)="Signup()">
           <ion-icon name="log-in-outline" slot="start"></ion-icon>
+          Register/ 
           Login
         </ion-button>
+        <!-- <ion-button class="login" expand="block" size="large" fill="outline">
+          <ion-icon name="log-in-outline" slot="start"></ion-icon>
+          Login
+        </ion-button> -->
       </div>
     </div>
   </div>

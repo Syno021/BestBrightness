@@ -16,6 +16,11 @@ export class HomePage {
     this.menu.open();
   }
 
+  Signup() {
+    this.router.navigate(['/signup']);
+    // Add navigation logic here
+  }
+
   browseProducts() {
     this.router.navigate(['/products']);
     // Add navigation logic here

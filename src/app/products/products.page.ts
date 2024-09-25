@@ -1,10 +1,8 @@
-import { Component, OnInit,ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { ToastController,IonSearchbar } from '@ionic/angular';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { ToastController, IonSearchbar } from '@ionic/angular';
 import { CartService } from '../services/cart.service';
 import { NavController } from '@ionic/angular';
-
-
 
 interface Product {
   id: number;
@@ -12,57 +10,86 @@ interface Product {
   price: number;
   description: string;
   image: string;
-  rating: number;
+  total_ratings: number; // Track total number of ratings
+  average_rating: number; // Track average rating
   isSale?: boolean;
   category: string;
-  
+  image_url?: string; // Allow image_url to be optional
 }
+
 @Component({
   selector: 'app-products',
   templateUrl: './products.page.html',
   styleUrls: ['./products.page.scss'],
 })
 export class ProductsPage implements OnInit {
-
   @ViewChild(IonSearchbar) searchbar!: IonSearchbar;
 
-  products: Product[] = [
-    { id: 1, name: 'Pine Gel', price: 19.99, description: 'High-quality pine gel', image: 'assets/pinegel.jpg', rating: 5, category: 'Personal Care' },
-    { id: 2, name: 'Broom and Dustpan', price: 29.99, description: 'Multipurpose liquid cleaner', image: 'assets/broom.jpg', rating: 5, category: 'Cleaning Supplies' },
-    { id: 3, name: 'Cleaning Cloth', price: 39.99, description: 'Microfiber cleaning cloth', image: 'assets/cloth.jpg', rating: 4, category: 'Cleaning Supplies' },
-    { id: 4, name: 'Gloves', price: 40.99, description: 'Durable cleaning gloves', image: 'assets/gloves.jpg', rating: 3, category: 'Personal Care' },
-    { id: 5, name: 'Toilet Cleaner', price: 90.99, description: 'Protective face mask', image: 'assets/all.webp', rating: 5, category: 'Personal Care' },
-    { id: 6, name: 'Pressure Cleaner', price: 50.99, description: 'High-pressure cleaner for heavy-duty cleaning', image: 'assets/cleaner.jpg', rating: 5, category: 'Cleaning Equipment' },
-    { id: 7, name: 'Mop', price: 18.99, description: 'High-quality mop', image: 'assets/mop.jpg', rating: 5, category: 'Personal Care' },
-    { id: 8, name: 'Toilet Brush', price: 59.99, description: 'Multipurpose liquid cleaner', image: 'assets/brush.jpg', rating: 5, category: 'Cleaning Supplies' },
-    { id: 9, name: 'Bucket and Mop', price: 159.99, description: 'Microfiber cleaning cloth', image: 'assets/bucket.jpg', rating: 5, category: 'Cleaning Supplies' },
-   
-  ];
-
-  // Filtered product list
-  filteredProducts: Product[] = this.products;
-
-  // Categories and sorting options
-  categories: string[] = ['All', ...new Set(this.products.map(product => product.category))];
+  products: Product[] = [];
+  filteredProducts: Product[] = [];
+  categories: string[] = ['All'];
   selectedCategory: string = 'All';
   sortOption: string = 'name';
 
-  constructor(private cartservice: CartService, private toastController: ToastController, private router: Router) { }
+  constructor(
+    private http: HttpClient,
+    private cartService: CartService,
+    private navCtrl: NavController,
+    private toastController: ToastController,
+  ) {}
 
   ngOnInit() {
-    this.applyFilters();
+    this.loadProducts();
+  }
+
+  // Fetch products from MySQL
+  loadProducts() {
+    this.http.get<Product[]>('http://localhost/user_api/products.php').subscribe({
+      next: (data: Product[]) => {
+        this.products = data;
+        this.filteredProducts = this.products;
+        this.extractCategories(); // Extract categories based on products
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error loading products:', error);
+      }
+    });
+  }
+
+  // Extract categories from products for the category filter
+  extractCategories() {
+    this.categories = ['All', ...new Set(this.products.map(product => product.category))];
+  }
+
+  // Method to handle product rating and update total_ratings and average_rating
+  rateProduct(product: Product, rating: number) {
+    const updatedProduct = { ...product };
+    const newTotalRatings = updatedProduct.total_ratings + 1;
+    const newAverage_rating = ((updatedProduct.average_rating * updatedProduct.total_ratings) + rating) / newTotalRatings;
+
+    // Send the rating to the back-end
+    this.http.post(`http://localhost/user_api/rate_product.php`, {
+      product_id: product.id,
+      rating: rating
+    }).subscribe({
+      next: (response) => {
+        // Update product total_ratings and average locally
+        updatedProduct.total_ratings = newTotalRatings;
+        updatedProduct.average_rating = newAverage_rating;
+
+        // Update locally without refreshing the entire page
+        this.products = this.products.map(p => p.id === updatedProduct.id ? updatedProduct : p);
+        this.applyFilters(); // Re-apply filters to update displayed data
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error rating product:', error);
+      }
+    });
   }
 
   // Search for products based on search term
-  
-
-
   searchProducts() {
     this.applyFilters();
-  }
-
-  navigateToCart() {
-    this.router.navigate(['/cart']);
   }
 
   // Filter products by category
@@ -79,21 +106,15 @@ export class ProductsPage implements OnInit {
 
   // Apply search, category filter, and sorting to the product list
   applyFilters() {
-    const searchTerm = this.searchbar ? this.searchbar.value?.toLowerCase() ?? '' : '';
+    const searchTerm = this.searchbar?.value?.toLowerCase() || '';
 
-    // Filter products by category and search term
-    this.filteredProducts = this.products.filter(product => 
+    // Filter products by search term and category
+    this.filteredProducts = this.products.filter((product) =>
+      (this.selectedCategory === 'All' || product.category === this.selectedCategory) &&
       product.name.toLowerCase().includes(searchTerm)
     );
-  
-    // this.filteredProducts = this.products.filter(product => 
-    //   (this.selectedCategory === 'All' || product.category === this.selectedCategory) &&
-    //   product.name.toLowerCase().includes(searchTerm)
-    // );
 
-
-
-    // Sort products based on the selected option
+    // Sort products
     switch (this.sortOption) {
       case 'name':
         this.filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
@@ -105,20 +126,24 @@ export class ProductsPage implements OnInit {
         this.filteredProducts.sort((a, b) => b.price - a.price);
         break;
       case 'rating':
-        this.filteredProducts.sort((a, b) => b.rating - a.rating);
+        this.filteredProducts.sort((a, b) => b.average_rating - a.average_rating);
         break;
     }
   }
 
   // Add product to cart and show a toast notification
   async addToCart(product: Product) {
-    this.cartservice.addToCart(product);
-
+    this.cartService.addToCart(product);
     const toast = await this.toastController.create({
       message: `${product.name} added to cart`,
       duration: 2000,
-      position: 'bottom'
+      position: 'bottom',
     });
     toast.present();
+  }
+
+  // Navigate to cart page
+  navigateToCart() {
+    this.navCtrl.navigateForward('/cart');
   }
 }
