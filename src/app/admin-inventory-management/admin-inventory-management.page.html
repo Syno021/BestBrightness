@@ -144,7 +144,8 @@
           <!-- Cover Image Upload -->
           <ion-item>
             <ion-label position="stacked">Cover Image</ion-label>
-            <ion-button expand="block" (click)="takeCoverPicture()">
+            <video #videoElement [hidden]="!showVideoPreview" autoplay></video>
+            <ion-button expand="block" (click)="captureImage()" [disabled]="!showVideoPreview">
               <ion-icon name="camera-outline" slot="start"></ion-icon>
               Upload Cover Image
           </ion-button>
@@ -152,6 +153,7 @@
               <img [src]="'data:image/jpeg;base64,' + coverImageBase64" alt="Cover Image">
             </ion-thumbnail>
           </ion-item>
+          <ion-button (click)="takeCoverPicture()">Open Camera</ion-button>
 
           <!-- Additional Images Upload -->
           <ion-item>

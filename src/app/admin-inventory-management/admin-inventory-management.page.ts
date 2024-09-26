@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { IonModal } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
@@ -6,6 +6,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { finalize } from 'rxjs/operators';
 import { Camera, CameraPhoto, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
+import { CameraService } from '../services/camera.service';
 import {
   AlertController,
   LoadingController,
@@ -32,7 +33,7 @@ interface Product {
 })
 export class AdminInventoryManagementPage implements OnInit {
   @ViewChild('addItemModal') addItemModal?: IonModal;
-  
+  @ViewChild('videoElement', { static: false }) videoElement?: ElementRef<HTMLVideoElement>;
   newItem: Product = {
     product_id: 0,
     name: '',
@@ -51,6 +52,7 @@ export class AdminInventoryManagementPage implements OnInit {
   lowStockAlert: Product[] = [];
   coverImageBase64: string = '';
   additionalImagesBase64: string[] = [];
+  showVideoPreview = false;
 
   constructor(
     private http: HttpClient,
@@ -59,10 +61,16 @@ export class AdminInventoryManagementPage implements OnInit {
     private loadingController: LoadingController,
     private firestore: AngularFirestore,
     private storage: AngularFireStorage,
+    private cameraService: CameraService
   ) { }
 
   ngOnInit() {
     this.loadProducts();
+  }
+
+  ngAfterViewInit() {
+    // Ensure the video element is available
+    console.log('Video element:', this.videoElement);
   }
 
   async presentAddItemModal() {
@@ -161,79 +169,88 @@ export class AdminInventoryManagementPage implements OnInit {
     }
   }
   
-  
+  openFilePicker() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = async (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async (e: ProgressEvent<FileReader>) => {
+          this.coverImageBase64 = (e.target?.result as string).split(',')[1]; // Remove the data:image/jpeg;base64, part
+          await this.presentToast('Image uploaded successfully', 'success');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        await this.presentToast('No image selected', 'danger');
+      }
+    };
+    
+    input.click();
+  }
      
 
 
   
   
   async checkCameraPermission(): Promise<boolean> {
+    if (Capacitor.getPlatform() === 'web') {
+      console.log('Running on web, camera permissions not applicable');
+      return true; // Assume permission granted on web
+    }
+    
     const permissions = await Camera.checkPermissions();
-  
     console.log('Camera permissions:', permissions);
-  
     if (permissions.camera === 'denied' || permissions.camera === 'prompt') {
-      // Request camera permission if denied or in 'prompt' state
       const permissionRequest = await Camera.requestPermissions();
       console.log('Requesting camera permissions:', permissionRequest);
-  
       return permissionRequest.camera === 'granted';
     }
-  
     return permissions.camera === 'granted';
   }
   
   async takeCoverPicture() {
     const loading = await this.loadingController.create({
-      message: 'Opening camera for cover image...',
+      message: 'Opening camera...',
     });
     await loading.present();
-  
+
     try {
-      // Check and request camera permission
-      const hasPermission = await this.checkCameraPermission();
-      
-      if (!hasPermission) {
-        await this.presentToast('Camera permission not granted!', 'danger');
-        await loading.dismiss(); // Dismiss loading if permission not granted
-        return;
+      const stream = await this.cameraService.startCamera();
+      if (this.videoElement && this.videoElement.nativeElement) {
+        this.videoElement.nativeElement.srcObject = stream;
+        this.showVideoPreview = true;
+      } else {
+        throw new Error('Video element not found');
       }
-  
-      console.log('Camera permission granted, attempting to open camera...');
-  
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Camera operation timed out')), 60000) // Increased timeout to 60 seconds
-      );
-  
-      const imagePromise = Camera.getPhoto({
-        quality: 90,
-        allowEditing: true,
-        resultType: CameraResultType.Base64,
-        source: CameraSource.Prompt,
-      });
-  
-      const image = await Promise.race([imagePromise, timeoutPromise]) as CameraPhoto;
-  
-      console.log('Camera result:', image);
-  
-      // If successful, log and store the image
-      this.coverImageBase64 = image.base64String || '';
-      await this.presentToast('Cover image selected successfully', 'success');
-    } catch (error) {
-      // Log the error if the camera fails to open
-      console.error('Error taking cover picture:', error);
-      await this.presentToast('Error taking cover picture: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
-    } finally {
-      // Dismiss the loading indicator and show feedback
       await loading.dismiss();
-      console.log('Loading dismissed');
+    } catch (error) {
+      console.error('Error opening camera:', error);
+      await this.presentToast('Error opening camera: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
+      this.openFilePicker();
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+
+  async captureImage() {
+    try {
+      const imageData = await this.cameraService.captureImage();
+      this.coverImageBase64 = imageData;
+      await this.presentToast('Cover image captured successfully', 'success');
+    } catch (error) {
+      console.error('Error capturing image:', error);
+      await this.presentToast('Error capturing image: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
+    } finally {
+      this.showVideoPreview = false;
+      this.cameraService.stopCamera();
     }
   }
   
-  
-
-
-
 
 async takeAdditionalPicture() {
     const loading = await this.loadingController.create({
