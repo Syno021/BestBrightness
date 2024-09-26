@@ -4,7 +4,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { finalize } from 'rxjs/operators';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Camera, CameraPhoto, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 import {
   AlertController,
   LoadingController,
@@ -163,38 +164,74 @@ export class AdminInventoryManagementPage implements OnInit {
   
      
 
+
+  
+  
+  async checkCameraPermission(): Promise<boolean> {
+    const permissions = await Camera.checkPermissions();
+  
+    console.log('Camera permissions:', permissions);
+  
+    if (permissions.camera === 'denied' || permissions.camera === 'prompt') {
+      // Request camera permission if denied or in 'prompt' state
+      const permissionRequest = await Camera.requestPermissions();
+      console.log('Requesting camera permissions:', permissionRequest);
+  
+      return permissionRequest.camera === 'granted';
+    }
+  
+    return permissions.camera === 'granted';
+  }
+  
   async takeCoverPicture() {
     const loading = await this.loadingController.create({
-        message: 'Opening camera for cover image...',
+      message: 'Opening camera for cover image...',
     });
     await loading.present();
-
+  
     try {
-        // Log or display a message that the camera opening attempt is starting
-        console.log('Attempting to open the camera...');
-        await this.presentToast('Attempting to open the camera...', 'success'); // Using 'success' since 'info' isn't allowed
-
-        const image = await Camera.getPhoto({
-            quality: 90,
-            allowEditing: true,
-            resultType: CameraResultType.Base64,
-            source: CameraSource.Prompt, // or CameraSource.Photos for the gallery
-        });
-
-        // If successful, log and store the image
-        console.log('Camera opened successfully.');
-        this.coverImageBase64 = image.base64String || '';
-        await this.presentToast('Cover image selected successfully', 'success');
+      // Check and request camera permission
+      const hasPermission = await this.checkCameraPermission();
+      
+      if (!hasPermission) {
+        await this.presentToast('Camera permission not granted!', 'danger');
+        await loading.dismiss(); // Dismiss loading if permission not granted
+        return;
+      }
+  
+      console.log('Camera permission granted, attempting to open camera...');
+  
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Camera operation timed out')), 60000) // Increased timeout to 60 seconds
+      );
+  
+      const imagePromise = Camera.getPhoto({
+        quality: 90,
+        allowEditing: true,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Prompt,
+      });
+  
+      const image = await Promise.race([imagePromise, timeoutPromise]) as CameraPhoto;
+  
+      console.log('Camera result:', image);
+  
+      // If successful, log and store the image
+      this.coverImageBase64 = image.base64String || '';
+      await this.presentToast('Cover image selected successfully', 'success');
     } catch (error) {
-        // Log the error if the camera fails to open
-        console.error('Error taking cover picture:', error);
-        await this.presentToast('Error taking cover picture: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
+      // Log the error if the camera fails to open
+      console.error('Error taking cover picture:', error);
+      await this.presentToast('Error taking cover picture: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
     } finally {
-        // Dismiss the loading indicator and show feedback
-        await loading.dismiss();
-        console.log('Loading dismissed');
+      // Dismiss the loading indicator and show feedback
+      await loading.dismiss();
+      console.log('Loading dismissed');
     }
-}
+  }
+  
+  
+
 
 
 
