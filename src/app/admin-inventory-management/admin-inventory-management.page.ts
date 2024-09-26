@@ -170,23 +170,33 @@ export class AdminInventoryManagementPage implements OnInit {
     await loading.present();
 
     try {
-      const image = await Camera.getPhoto({
-        quality: 90,
-        allowEditing: true,
-        resultType: CameraResultType.Base64,
-        source: CameraSource.Camera, // or CameraSource.Photos for the gallery
-    });
-    
+        // Log or display a message that the camera opening attempt is starting
+        console.log('Attempting to open the camera...');
+        await this.presentToast('Attempting to open the camera...', 'success'); // Using 'success' since 'info' isn't allowed
 
+        const image = await Camera.getPhoto({
+            quality: 90,
+            allowEditing: true,
+            resultType: CameraResultType.Base64,
+            source: CameraSource.Prompt, // or CameraSource.Photos for the gallery
+        });
+
+        // If successful, log and store the image
+        console.log('Camera opened successfully.');
         this.coverImageBase64 = image.base64String || '';
         await this.presentToast('Cover image selected successfully', 'success');
     } catch (error) {
+        // Log the error if the camera fails to open
         console.error('Error taking cover picture:', error);
         await this.presentToast('Error taking cover picture: ' + (error instanceof Error ? error.message : 'Unknown error'), 'danger');
     } finally {
+        // Dismiss the loading indicator and show feedback
         await loading.dismiss();
+        console.log('Loading dismissed');
     }
 }
+
+
 
 async takeAdditionalPicture() {
     const loading = await this.loadingController.create({
