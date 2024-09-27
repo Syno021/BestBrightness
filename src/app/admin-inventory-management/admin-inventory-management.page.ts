@@ -5,6 +5,7 @@ import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { finalize } from 'rxjs/operators';
 import { Camera, CameraPhoto, CameraResultType, CameraSource } from '@capacitor/camera';
+import jsQR from 'jsqr';
 import { Capacitor } from '@capacitor/core';
 import { CameraService } from '../services/camera.service';
 import {
@@ -192,10 +193,43 @@ export class AdminInventoryManagementPage implements OnInit {
     input.click();
   }
      
+  async scanBarcode() {
+    try {
+      const stream = await this.cameraService.startCamera();
+      const video: HTMLVideoElement = document.querySelector('video')!;
+      video.srcObject = stream;
+      await video.play();
 
+      requestAnimationFrame(this.scan.bind(this));
+    } catch (error) {
+      console.error('Error starting camera:', error);
+    }
+  }
 
-  
-  
+  private scan() {
+    const video: HTMLVideoElement = document.querySelector('video')!;
+    const canvas: HTMLCanvasElement = document.querySelector('canvas')!;
+    const context = canvas.getContext('2d')!;
+
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.height = video.videoHeight;
+      canvas.width = video.videoWidth;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (code) {
+        console.log('Found QR code', code.data);
+        this.newItem.barcode = code.data;
+        this.cameraService.stopCamera();
+      } else {
+        requestAnimationFrame(this.scan.bind(this));
+      }
+    } else {
+      requestAnimationFrame(this.scan.bind(this));
+    }
+  }
+
   async checkCameraPermission(): Promise<boolean> {
     if (Capacitor.getPlatform() === 'web') {
       console.log('Running on web, camera permissions not applicable');
