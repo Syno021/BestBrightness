@@ -11,32 +11,30 @@
       <tbody>
         <tr *ngFor="let item of cartItems">
           <td class="product-info">
-            <ion-img [src]="item.image_url || item.image"></ion-img> <!-- Display product image -->
+            <ion-img [src]="item.image_url"></ion-img>
             <div>
               <h3>{{ item.name }}</h3>
-              <p>Price: R{{ item.price.toFixed(2) }}</p>
-              <ion-button fill="clear" (click)="removeItem(item.id)">Remove</ion-button>
+              <p>Price: R{{ item.price }}</p>
+              <ion-button fill="clear" (click)="removeItem(item.product_id)">Remove</ion-button>
             </div>
           </td>
           <td>
             <div class="quantity-control">
-              <ion-button fill="clear" (click)="decreaseQuantity(item.id)">-</ion-button>
+              <ion-button fill="clear" (click)="updateQuantity(item.product_id, item.quantity - 1)">-</ion-button>
               <span>{{ item.quantity }}</span>
-              <ion-button fill="clear" (click)="increaseQuantity(item.id)">+</ion-button>
+              <ion-button fill="clear" (click)="updateQuantity(item.product_id, item.quantity + 1)">+</ion-button>
             </div>
           </td>
-          <td>R{{ (item.price * item.quantity).toFixed(2) }}</td>
+          <td>R{{ (item.price * item.quantity) }}</td>
         </tr>
       </tbody>
     </table>
-
     <ng-template #emptyCart>
       <div class="empty-cart-message">
         <h3>Your cart is empty</h3>
         <p>Add some items to your cart to see them here.</p>
       </div>
     </ng-template>
-
     <div class="cart-total">
       <table>
         <tr>

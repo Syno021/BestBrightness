@@ -63,7 +63,7 @@
           <ion-card-content>
             <div class="price-rating">
               <span class="price">R{{ product.price }}</span>
-
+ 
               <!-- Star Ratings -->
               <ion-icon
                 name="star"
@@ -71,10 +71,21 @@
                 [color]="star <= product.average_rating ? 'warning' : 'medium'"
                 (click)="rateProduct(product, star)">
               </ion-icon>
-
-              <!-- Display average rating and total ratings -->
+ 
               <span>({{ product.total_ratings }} ratings)</span>
             </div>
+ 
+            <!-- Quantity controls -->
+            <div class="quantity-controls">
+              <ion-button fill="clear" (click)="decreaseQuantity(product)">
+                <ion-icon name="remove-circle-outline"></ion-icon>
+              </ion-button>
+              <span>{{ product.quantity }}</span>
+              <ion-button fill="clear" (click)="increaseQuantity(product)">
+                <ion-icon name="add-circle-outline"></ion-icon>
+              </ion-button>
+            </div>
+ 
             <ion-button expand="block" fill="clear" (click)="addToCart(product)">Add to Cart</ion-button>
           </ion-card-content>
         </ion-card>

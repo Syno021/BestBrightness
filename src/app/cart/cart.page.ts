@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AlertController,ToastController, AlertOptions } from '@ionic/angular';
 import { ChangeDetectorRef } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 // import { AddressModalComponent } from './address-modal.component';
 
 @Component({
@@ -21,6 +22,8 @@ export class CartPage implements OnInit {
   tax: number = 0;
   total: number = 0;
   // toastController: any;
+  
+  private cartSubscription: Subscription | undefined;
 
   constructor(
     private cartService: CartService, 
@@ -35,50 +38,89 @@ export class CartPage implements OnInit {
     this.loadCart();
   }
 
+  ngOnDestroy() {
+    if (this.cartSubscription) {
+      this.cartSubscription.unsubscribe();
+    }
+  }
+
   loadCart() {
-    this.cartService.getCart().subscribe(items => {
-      this.cartItems = items;
-      this.calculateTotals();
+    this.cartSubscription = this.cartService.getCart().subscribe({
+      next: (items) => {
+        this.cartItems = items;
+        this.calculateTotals();
+        console.log('Cart items:', this.cartItems);
+        if (this.cartItems.length === 0) {
+          this.showToast('Your cart is empty');
+        }
+      },
+      error: (error) => {
+        console.error('Error loading cart:', error);
+        this.showToast('Failed to load cart. Please try again later.');
+      }
     });
   }
 
   calculateTotals() {
-    this.subtotal = this.cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    this.subtotal = this.cartService.getTotal();
     this.tax = this.cartService.getTax();
     this.total = this.subtotal + this.tax;
   }
 
   removeItem(productId: number) {
-    // Remove item from the cartService
-    this.cartService.removeFromCart(productId);
+    console.log('removeItem: Attempting to remove item with productId:', productId);
+    this.cartService.removeFromCart(productId).subscribe({
+      next: () => {
+        console.log('removeItem: Item successfully removed from cart');
+        this.showToast('Item removed from cart');
+        this.loadCart();
+      },
+      error: (error: Error) => {
+        this.showToast(`Failed to remove item from cart: ${error.message}`);
+      }
+    });
+}
 
-    // Update the local cartItems array and recalculate totals
-    this.cartItems = this.cartItems.filter(item => item.id !== productId);
-    this.calculateTotals();
+updateQuantity(productId: number, newQuantity: number) {
+    console.log('updateQuantity: Attempting to update quantity for productId:', productId, 'with new quantity:', newQuantity);
+    if (newQuantity < 1) {
+      console.log('updateQuantity: New quantity is less than 1, removing item with productId:', productId);
+      this.removeItem(productId);
+      return;
+    }
     
-    // Ensure the UI is updated by checking if the cart is empty
-    if (this.cartItems.length === 0) {
-      this.cartItems = []; // Clear the array to reflect an empty cart
+    this.cartService.updateQuantity(productId, newQuantity).subscribe({
+      next: () => {
+        //console.log('updateQuantity: Quantity successfully updated for productId:', productId, 'to:', newQuantity);
+        this.showToast('Quantity updated');
+        this.loadCart();
+      },
+      error: (error) => {
+        //console.error('updateQuantity: Error updating quantity for productId:', productId, 'Error details:', error);
+        this.showToast(`Failed to update quantity for productId ${productId}: ${error.message}`);
+      }
+    });
+}
+  async showToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom'
+    });
+    toast.present();
+  }
+
+  decreaseQuantity(productId: number) {
+    const item = this.cartItems.find(i => i.product_id === productId);
+    if (item && item.quantity > 1) {
+      this.updateQuantity(productId, item.quantity - 1);
     }
   }
 
   increaseQuantity(productId: number) {
-    const item = this.cartItems.find(i => i.id === productId);
+    const item = this.cartItems.find(i => i.product_id === productId);
     if (item) {
-      item.quantity += 1; // Update the quantity locally
-      this.cartService.updateQuantity(productId, item.quantity); // Sync with cart service
-      this.calculateTotals(); // Recalculate totals
-      this.cd.detectChanges(); // Manually trigger change detection
-    }
-  }
-
-  decreaseQuantity(productId: number) {
-    const item = this.cartItems.find(i => i.id === productId);
-    if (item && item.quantity > 1) {
-      item.quantity -= 1; // Update the quantity locally
-      this.cartService.updateQuantity(productId, item.quantity); // Sync with cart service
-      this.calculateTotals(); // Recalculate totals
-      this.cd.detectChanges(); // Manually trigger change detection
+      this.updateQuantity(productId, item.quantity + 1);
     }
   }
   

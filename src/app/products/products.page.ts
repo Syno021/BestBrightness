@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { ToastController, IonSearchbar } from '@ionic/angular';
 import { CartService } from '../services/cart.service';
 import { NavController } from '@ionic/angular';
 
 interface Product {
-  id: number;
+  product_id: number;
   name: string;
   price: number;
   description: string;
@@ -14,7 +14,8 @@ interface Product {
   average_rating: number; // Track average rating
   isSale?: boolean;
   category: string;
-  image_url?: string; // Allow image_url to be optional
+  image_url: string; // Allow image_url to be optional
+  quantity: number;
 }
 
 @Component({
@@ -30,6 +31,7 @@ export class ProductsPage implements OnInit {
   categories: string[] = ['All'];
   selectedCategory: string = 'All';
   sortOption: string = 'name';
+  userId: string | null = null;
 
   constructor(
     private http: HttpClient,
@@ -40,15 +42,26 @@ export class ProductsPage implements OnInit {
 
   ngOnInit() {
     this.loadProducts();
+    this.getUserId();
   }
+
+  getUserId() {
+    this.userId = sessionStorage.getItem('userId');
+    if (!this.userId) {
+      console.warn('User is not logged in');
+      // You might want to redirect to login page or show a message
+    }
+  }
+
 
   // Fetch products from MySQL
   loadProducts() {
     this.http.get<Product[]>('http://localhost/user_api/products.php').subscribe({
       next: (data: Product[]) => {
-        this.products = data;
+        this.products = data.map(product => ({ ...product, quantity: 1 }));
         this.filteredProducts = this.products;
-        this.extractCategories(); // Extract categories based on products
+        this.extractCategories();
+        console.log('Products loaded:', this.products);
       },
       error: (error: HttpErrorResponse) => {
         console.error('Error loading products:', error);
@@ -69,7 +82,7 @@ export class ProductsPage implements OnInit {
 
     // Send the rating to the back-end
     this.http.post(`http://localhost/user_api/rate_product.php`, {
-      product_id: product.id,
+      product_id: product.product_id,
       rating: rating
     }).subscribe({
       next: (response) => {
@@ -78,7 +91,7 @@ export class ProductsPage implements OnInit {
         updatedProduct.average_rating = newAverage_rating;
 
         // Update locally without refreshing the entire page
-        this.products = this.products.map(p => p.id === updatedProduct.id ? updatedProduct : p);
+        this.products = this.products.map(p => p.product_id === updatedProduct.product_id ? updatedProduct : p);
         this.applyFilters(); // Re-apply filters to update displayed data
       },
       error: (error: HttpErrorResponse) => {
@@ -132,15 +145,85 @@ export class ProductsPage implements OnInit {
   }
 
   // Add product to cart and show a toast notification
-  async addToCart(product: Product) {
-    this.cartService.addToCart(product);
-    const toast = await this.toastController.create({
-      message: `${product.name} added to cart`,
-      duration: 2000,
-      position: 'bottom',
-    });
-    toast.present();
+  increaseQuantity(product: Product) {
+    if (product.quantity) {
+      product.quantity++;
+    } else {
+      product.quantity = 1;
+    }
   }
+
+  decreaseQuantity(product: Product) {
+    if (product.quantity && product.quantity > 1) {
+      product.quantity--;
+    } else {
+      product.quantity = 1;
+    }
+  }
+
+  async addToCart(product: Product) {
+    if (!this.userId) {
+      const toast = await this.toastController.create({
+        message: 'Please log in to add items to your cart',
+        duration: 2000,
+        position: 'bottom',
+        color: 'warning'
+      });
+      toast.present();
+      return;
+    }
+
+    if (!product.quantity || product.quantity < 1) {
+      product.quantity = 1;
+    }
+  
+    this.cartService.addToCart(product);
+    
+    const payload = {
+      user_id: this.userId,
+      product_id: product.product_id,
+      quantity: product.quantity
+    };
+  
+    console.log('Sending request to add to cart:', payload);
+  
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
+  
+    try {
+      const response: any = await this.http.post('http://localhost/user_api/cart.php', payload, { headers, observe: 'response' }).toPromise();
+      
+      console.log('Full response:', response);
+      console.log('Response status:', response.status);
+      console.log('Response body:', response.body);
+      console.log('Product added to cart successfully');
+  
+      const toast = await this.toastController.create({
+        message: `${product.quantity} ${product.name}(s) added to cart`,
+        duration: 2000,
+        position: 'bottom',
+      });
+      toast.present();
+  
+      // Reset quantity to 1 after adding to cart
+      product.quantity = 1;
+    } catch (error: any) {
+      console.error('Error adding product to cart:', error);
+      if (error.error instanceof ErrorEvent) {
+        console.error('An error occurred:', error.error.message);
+      } else {
+        console.error(`Backend returned code ${error.status}, body was:`, error.error);
+      }
+      
+      const errorToast = await this.toastController.create({
+        message: 'Error adding product to cart. Please try again.',
+        duration: 3000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      errorToast.present();
+    }
+  }
+
 
   // Navigate to cart page
   navigateToCart() {
