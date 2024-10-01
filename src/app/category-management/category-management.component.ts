@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-category-management',
@@ -9,13 +10,18 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 })
 export class CategoryManagementComponent implements OnInit {
   categories: any[] = [];
-  newCategory: string = '';
+  categoryForm: FormGroup;
 
   constructor(
     private modalController: ModalController,
     private http: HttpClient,
-    private toastController: ToastController
-  ) {}
+    private toastController: ToastController,
+    private formBuilder: FormBuilder
+  ) {
+    this.categoryForm = this.formBuilder.group({
+      newCategory: ['', [Validators.required, Validators.minLength(1)]]
+    });
+  }
 
   ngOnInit() {
     this.loadCategories();
@@ -45,16 +51,16 @@ export class CategoryManagementComponent implements OnInit {
   }
 
   addCategory() {
-    console.log('Current newCategory value:', this.newCategory); // This should log the value in the console
-  
-    if (this.newCategory && this.newCategory.trim() !== '') {
-      console.log('Attempting to add category:', this.newCategory.trim()); // Log trimmed value
-      this.http.post('http://localhost/user_api/categories.php', { name: this.newCategory.trim() }).subscribe(
+    if (this.categoryForm.valid) {
+      const newCategory = this.categoryForm.get('newCategory')?.value.trim();
+      console.log('Attempting to add category:', newCategory);
+      
+      this.http.post('http://localhost/user_api/categories.php', { name: newCategory }).subscribe(
         (response: any) => {
           console.log('Server response:', response);
           if (response.success) {
             this.loadCategories();
-            this.newCategory = '';
+            this.categoryForm.reset();
             this.presentToast(response.message);
           } else {
             this.presentToast(response.message || 'Unknown error occurred', 'danger');
@@ -66,11 +72,10 @@ export class CategoryManagementComponent implements OnInit {
         }
       );
     } else {
-      console.log('Category name is empty or contains only whitespace');
-      this.presentToast('Please enter a category name', 'warning');
+      console.log('Form is invalid');
+      this.presentToast('Please enter a valid category name', 'warning');
     }
   }
-  
 
   editCategory(category: any) {
     // Implement edit functionality

@@ -117,10 +117,10 @@
           </ion-item>
           <ion-item>
             <ion-label position="floating">Category</ion-label>
-            <ion-select [(ngModel)]="newItem.category" name="category" required>
-              <ion-select-option value="liquids">Liquids</ion-select-option>
-              <ion-select-option value="powders">Powders</ion-select-option>
-              <ion-select-option value="material">Material</ion-select-option>
+            <ion-select [(ngModel)]="newItem.category" name="category" id="category-select" required>
+              <ion-select-option *ngFor="let category of categories" [value]="category.name">
+                {{ category.name }}
+              </ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item>

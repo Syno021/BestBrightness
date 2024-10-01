@@ -30,6 +30,11 @@ interface Product {
   additional_images?: string[];
 }
 
+interface Category {
+  category_id: number;
+  name: string;
+}
+
 @Component({
   selector: 'app-admin-inventory-management',
   templateUrl: './admin-inventory-management.page.html',
@@ -57,6 +62,7 @@ export class AdminInventoryManagementPage implements OnInit {
   coverImageBase64: string = '';
   additionalImagesBase64: string[] = [];
   showVideoPreview = false;
+  categories: Category[] = [];
 
   constructor(
     private http: HttpClient,
@@ -71,6 +77,7 @@ export class AdminInventoryManagementPage implements OnInit {
 
   ngOnInit() {
     this.loadProducts();
+    this.loadCategories();
   }
 
   ngAfterViewInit() {
@@ -113,6 +120,19 @@ export class AdminInventoryManagementPage implements OnInit {
     this.fastMoving = sortedProducts.slice(0, 5);
     this.slowMoving = sortedProducts.slice(-5).reverse();
     this.lowStockAlert = this.products.filter(p => p.stock_quantity < 75);
+  }
+
+  loadCategories() {
+    this.http.get<Category[]>('http://localhost/user_api/categories.php')
+      .subscribe(
+        (data: Category[]) => {
+          this.categories = data;
+        },
+        (error: HttpErrorResponse) => {
+          console.error('Error fetching categories:', error);
+          this.presentToast('Error loading categories: ' + error.message, 'danger');
+        }
+      );
   }
 
   async submitForm() {

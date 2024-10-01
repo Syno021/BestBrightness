@@ -20,8 +20,10 @@
       </ion-buttons>
     </ion-item>
   </ion-list>
-  <ion-item>
-    <ion-input [(ngModel)]="newCategory" placeholder="New category name" (keyup.enter)="addCategory()"></ion-input>
-    <ion-button slot="end" (click)="addCategory()">Add</ion-button>
-  </ion-item>
+  <form [formGroup]="categoryForm" (ngSubmit)="addCategory()">
+    <ion-item>
+      <ion-input formControlName="newCategory" placeholder="New category name"></ion-input>
+      <ion-button type="submit" [disabled]="!categoryForm.valid">Add</ion-button>
+    </ion-item>
+  </form>
 </ion-content>
