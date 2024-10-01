@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CartService } from '../services/cart.service';
 import { Router } from '@angular/router';
 import { AlertController,ToastController, AlertOptions } from '@ionic/angular';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
@@ -31,6 +32,7 @@ export class CartPage implements OnInit {
      private alertController: AlertController,
      private toastController: ToastController,
      private cd: ChangeDetectorRef,
+     private http: HttpClient
     //  private modalController: ModalController
   ) {}
 
@@ -62,8 +64,8 @@ export class CartPage implements OnInit {
   }
 
   calculateTotals() {
-    this.subtotal = this.cartService.getTotal();
-    this.tax = this.cartService.getTax();
+    this.subtotal = this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    this.tax = this.subtotal * 0.15; // Assuming 15% tax rate
     this.total = this.subtotal + this.tax;
   }
 
@@ -240,27 +242,60 @@ updateQuantity(productId: number, newQuantity: number) {
       await alert.present();
       return;
     }
-
-const alert = await this.alertController.create({
-  header: 'Order Placed',
-  message: `Your order for R{{this.total.toFixed(2)} has been placed successfully!`,
-  buttons: [
-      {
-        text: 'OK',
-        handler: () => {
-          this.cartService.clearCart();
-          this.cartItems = [];
-          this.calculateTotals();
-          alert.dismiss();
+  
+    // Prepare the order data
+    const orderData = {
+      user_id: 2, // Replace with actual user ID from your authentication system
+      total_amount: this.total,
+      order_type: this.deliveryMethod,
+      status: 'pending',
+      items: this.cartItems
+    };
+  
+    console.log('Order data being sent:', JSON.stringify(orderData, null, 2));
+  
+    // Send the order data to the PHP script
+    this.http.post('http://localhost/user_api/orders.php', orderData, { observe: 'response' }).subscribe(
+      async (response: any) => {
+        console.log('Full response:', response);
+        if (response.body && response.body.success) {
+          const alert = await this.alertController.create({
+            header: 'Order Placed',
+            message: `Your order for R${this.total.toFixed(2)} has been placed successfully!`,
+            buttons: [
+              {
+                text: 'OK',
+                handler: () => {
+                  this.cartService.clearCart();
+                  this.cartItems = [];
+                  this.calculateTotals();
+                  alert.dismiss();
+                }
+              }
+            ]
+          });
+          await alert.present();
+  
+          // Automatically dismiss the alert after 3 seconds
+          setTimeout(() => {
+            alert.dismiss();
+          }, 3000);
+        } else {
+          console.error('Server response indicates failure:', response.body);
+          this.showToast('Failed to place order. Please try again.');
         }
+      },
+      error => {
+        console.error('Error placing order:', error);
+        if (error.error instanceof ErrorEvent) {
+          // Client-side error
+          console.error('Client-side error:', error.error.message);
+        } else {
+          // Server-side error
+          console.error('Server-side error:', error.status, error.error);
+        }
+        this.showToast('An error occurred while placing your order. Please try again.');
       }
-      ]
-    });
-    await alert.present();
-
-    // Automatically dismiss the alert after 3 seconds
-    setTimeout(() => {
-      alert.dismiss();
-    }, 3000);
+    );
   }
 }

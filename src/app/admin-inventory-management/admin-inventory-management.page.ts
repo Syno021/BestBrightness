@@ -1,5 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { IonModal } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
@@ -14,6 +16,7 @@ import {
   ModalController,
   ToastController,
 } from '@ionic/angular';
+import { CategoryManagementComponent } from '../category-management/category-management.component';
 
 interface Product {
   product_id: number;
@@ -62,7 +65,8 @@ export class AdminInventoryManagementPage implements OnInit {
     private loadingController: LoadingController,
     private firestore: AngularFirestore,
     private storage: AngularFireStorage,
-    private cameraService: CameraService
+    private cameraService: CameraService,
+    private modalController: ModalController
   ) { }
 
   ngOnInit() {
@@ -72,6 +76,13 @@ export class AdminInventoryManagementPage implements OnInit {
   ngAfterViewInit() {
     // Ensure the video element is available
     console.log('Video element:', this.videoElement);
+  }
+
+  async openCategoryManagementModal() {
+    const modal = await this.modalController.create({
+      component: CategoryManagementComponent
+    });
+    return await modal.present();
   }
 
   async presentAddItemModal() {
