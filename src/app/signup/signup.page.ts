@@ -47,21 +47,22 @@ export class SignupPage implements OnInit {
       };
 
       // Send POST request to PHP API for registration
-      this.http.post('http://localhost/user_api/register.php', registerData)
-        .subscribe(
-          async (response: any) => {
-            if (response.status === 1) {
-              await this.presentToast('Registration successful', 'success');
-              this.clearFields();
-            } else {
-              await this.presentToast('Registration failed: ' + response.message, 'danger');
-            }
-          },
-          async (error: HttpErrorResponse) => {
-            console.error('Error during registration:', error);
-            await this.presentToast('Error during registration: ' + error.message, 'danger');
-          }
-        );
+      this.http.post('http://sql210.infinityfree.com/register.php', registerData)
+  .subscribe(
+    async (response: any) => {
+      console.log('Registration response:', response);
+      if (response.status === 1) {
+        await this.presentToast('Registration successful', 'success');
+        this.clearFields();
+      } else {
+        await this.presentToast('Registration failed: ' + response.message, 'danger');
+      }
+    },
+    async (error: HttpErrorResponse) => {
+      console.error('Error during registration:', error);
+      await this.presentToast('Error during registration: ' + error.message, 'danger');
+    }
+  );
     } else {
       // Send POST request to PHP API for login
       this.http.post('http://localhost/user_api/login.php', this.loginData)
