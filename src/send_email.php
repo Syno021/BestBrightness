@@ -1,93 +1,50 @@
 <?php
-header("Access-Control-Allow-Origin: *"); // Allow requests from any origin
-header("Access-Control-Allow-Methods: GET, POST"); // Allow GET and POST methods
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST");
 session_start();
 
-$subject = $_GET['subject'];
-$email = $_GET['recipient'];
-$body = $_GET['body'];
-// $urlArrayString = $_GET['urlArrays'];
-
-// $urlArrays = explode(',', $urlArrayString); // Convert the comma-separated string back to an array
-
-/*##########Script Information#########
-  # Purpose: Send mail Using PHPMailer#
-  #          & Gmail SMTP Server      #
-  # Created: 24-11-2019               #
-  #   Author : Hafiz Haider           #
-  # Version: 1.0                      #
-  # Website: www.BroExperts.com       #
-  #####################################*/
+$subject = $_POST['subject'];
+$email = $_POST['recipient'];
+$body = $_POST['body'];
 
 // Include required PHPMailer files
 require 'PHPMailer.php';
 require 'SMTP.php';
 require 'Exception.php';
 
-// Define namespaces
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-// Create an instance of PHPMailer
 $mail = new PHPMailer();
-
-// Set the mailer to use SMTP
 $mail->isSMTP();
-
-// Define the SMTP host
 $mail->Host = "smtp.gmail.com";
-
-// Enable SMTP authentication
 $mail->SMTPAuth = true;
-
-// Set the SMTP encryption type (ssl/tls)
 $mail->SMTPSecure = "tls";
-
-// Set the port to connect SMTP
 $mail->Port = "587";
-
-// Set the Gmail username
-$mail->Username = "mnguninompilo86@gmail.com";
-
-// Set the Gmail password
-$mail->Password = "hizyqyhapgdhgawd";
-
-// Set the email subject
-$mail->Subject = $subject;
-
-// Set the sender email
+$mail->Username = "mnguninompilo86@gmail.com"; 
+$mail->Password = "hizyqyhapgdhgawd"; 
 $mail->setFrom('mnguninompilo86@gmail.com');
-
-// Enable HTML
+$mail->addAddress($email);
+$mail->Subject = $subject;
 $mail->isHTML(true);
-
-// Set the email body
 $mail->Body = "<p>$body</p>";
 
-// Add the recipient
-$mail->addAddress($email);
-
-// Download and attach the files
-// foreach ($urlArrays as $url) {
-  
-//         $fileContent = @file_get_contents($url); // Retrieve the file contents
-//         $fileName = basename($url);
-//         $mail->addStringAttachment($fileContent, $fileName);
-   
-// }
-
-// Finally, send the email
-if ($mail->send()) {
-    $response = "Email sent successfully!!!.";
+// Check if a file was uploaded
+if (isset($_FILES['pdf']['tmp_name'])) {
+    $fileContent = file_get_contents($_FILES['pdf']['tmp_name']);
+    $fileName = $_FILES['pdf']['name'];
+    $mail->addStringAttachment($fileContent, $fileName, 'base64', 'application/pdf');
 } else {
-    $response = "Message could not be sent. Mailer Error: " . $mail->ErrorInfo;
+    error_log("No PDF file received.");
 }
 
-// Closing SMTP connection
-$mail->smtpClose();
+// Send the email
+if ($mail->send()) {
+    $response = ["message" => "Email sent successfully!!!."];
+} else {
+    $response = ["error" => "Mailer Error: " . $mail->ErrorInfo];
+}
 
-// Return the response to Angular
 header('Content-Type: application/json');
 echo json_encode($response);
-?>
