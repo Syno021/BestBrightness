@@ -46,8 +46,13 @@
           <ion-col>{{ user.email }}</ion-col>
           <ion-col>{{ user.role }}</ion-col>
           <ion-col>
-            <ion-button color="primary" (click)="editUser(user)">Edit</ion-button>
-            <ion-button color="danger" (click)="deleteUser(user.user_id)">Delete</ion-button>
+
+            <ion-button (click)="editUser(user)" fill="clear" color="primary">
+              <ion-icon name="eye-outline"></ion-icon> <!-- View Details icon -->
+            </ion-button>
+            <ion-button (click)="deleteUser(user.user_id)" fill="clear" color="danger">
+              <ion-icon name="trash-outline"></ion-icon> <!-- Cancel Order icon -->
+            </ion-button>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -55,13 +60,12 @@
   </ion-card>
 
   <!-- Action Buttons -->
-  <ion-footer>
-    <ion-toolbar>
-      <ion-buttons slot="end">
-        <ion-button expand="full" color="success" (click)="presentAddUserModal()">Add New User</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-footer>
+
+ 
+  <button class="fab" (click)="presentAddUserModal()">
+    <ion-icon name="person-add-outline"></ion-icon>
+  </button>
+
 
   <!-- Add User Modal -->
   <ion-modal [isOpen]="addUserModal?.isOpen">

@@ -49,9 +49,15 @@
             <ion-col>{{ order.status }}</ion-col>
             <ion-col>{{ order.created_at }}</ion-col>
             <ion-col>
-              <ion-button color="primary">View Details</ion-button>
-              <ion-button color="success">Update Status</ion-button>
-              <ion-button color="danger">Cancel Order</ion-button>
+              <ion-button fill="clear" color="primary">
+                <ion-icon name="eye-outline"></ion-icon> <!-- View Details icon -->
+              </ion-button>
+              <ion-button fill="clear" color="success">
+                <ion-icon name="sync-outline"></ion-icon> <!-- Update Status icon -->
+              </ion-button>
+              <ion-button fill="clear" color="danger">
+                <ion-icon name="trash-outline"></ion-icon> <!-- Cancel Order icon -->
+              </ion-button>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -59,12 +65,7 @@
     </ion-card>
 
     <!-- Action Buttons -->
-    <ion-footer>
-      <ion-toolbar>
-        <ion-buttons slot="end">
-          <ion-button expand="full" color="primary">Generate Report</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-footer>
-  </ion-content>
-</ion-content>
+<button class="fab">
+  <ion-icon name="bag-check-outline"></ion-icon>
+</button>
+
