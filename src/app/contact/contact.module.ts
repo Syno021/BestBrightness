@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { AboutUsPage } from './about-us.page';
+import { ContactPage } from './contact.page';
 import { RouterModule } from '@angular/router';
 
 @NgModule({
@@ -10,8 +10,8 @@ import { RouterModule } from '@angular/router';
     CommonModule,
     FormsModule,
     IonicModule,
-    RouterModule.forChild([{ path: '', component: AboutUsPage }])
+    RouterModule.forChild([{ path: '', component: ContactPage }])
   ],
-  declarations: [AboutUsPage]
+  declarations: [ContactPage]
 })
-export class AboutUsPageModule {}
+export class ContactPageModule {}
