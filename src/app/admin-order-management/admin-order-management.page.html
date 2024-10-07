@@ -5,29 +5,23 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <!-- Collapsible Header -->
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">Admin Order Management</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <!-- Main Content -->
   <ion-content>
-    <!-- Search Bar -->
     <ion-searchbar placeholder="Search orders"></ion-searchbar>
 
-    <!-- Filter Options -->
     <ion-item>
       <ion-label>Filter By</ion-label>
       <ion-select placeholder="Select Filter">
         <ion-select-option value="status">Status</ion-select-option>
         <ion-select-option value="date">Date</ion-select-option>
-        <!-- Add more filters as needed -->
       </ion-select>
     </ion-item>
 
-    <!-- Order List -->
     <ion-card>
       <ion-card-header>
         <ion-card-title>Order List</ion-card-title>
@@ -38,6 +32,7 @@
             <ion-col>Order ID</ion-col>
             <ion-col>User ID</ion-col>
             <ion-col>Amount</ion-col>
+            <ion-col>Order type</ion-col>
             <ion-col>Status</ion-col>
             <ion-col>Date</ion-col>
             <ion-col>Actions</ion-col>
@@ -46,26 +41,62 @@
             <ion-col>{{ order.order_id }}</ion-col>
             <ion-col>{{ order.user_id }}</ion-col>
             <ion-col>{{ order.total_amount }}</ion-col>
+            <ion-col>{{ order.order_type }}</ion-col>
             <ion-col>{{ order.status }}</ion-col>
             <ion-col>{{ order.created_at }}</ion-col>
             <ion-col>
-              <ion-button fill="clear" color="primary">
-                <ion-icon name="eye-outline"></ion-icon> <!-- View Details icon -->
+              <ion-button fill="clear" color="primary" (click)="viewOrderDetails(order)">
+                <ion-icon name="eye-outline"></ion-icon>
               </ion-button>
-              <ion-button fill="clear" color="success">
-                <ion-icon name="sync-outline"></ion-icon> <!-- Update Status icon -->
+              <ion-button fill="clear" color="success" (click)="openUpdateStatusModal(order)">
+                <ion-icon name="sync-outline"></ion-icon>
               </ion-button>
-              <ion-button fill="clear" color="danger">
-                <ion-icon name="trash-outline"></ion-icon> <!-- Cancel Order icon -->
+              <ion-button fill="clear" color="danger" (click)="deleteOrder(order)">
+                <ion-icon name="trash-outline"></ion-icon>
               </ion-button>
             </ion-col>
           </ion-row>
         </ion-grid>
       </ion-card-content>
     </ion-card>
+  </ion-content>
+</ion-content>
 
-    <!-- Action Buttons -->
-<button class="fab">
-  <ion-icon name="bag-check-outline"></ion-icon>
-</button>
-
+<!-- Update Status Modal -->
+<ion-modal #updateStatusModal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Update Order Status</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="updateStatusModal.dismiss()">Close</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-list>
+        <ion-radio-group [(ngModel)]="selectedStatus">
+          <ion-item>
+            <ion-label>Pending</ion-label>
+            <ion-radio slot="end" value="Pending"></ion-radio>
+          </ion-item>
+          <ion-item>
+            <ion-label>Shipped</ion-label>
+            <ion-radio slot="end" value="Shipped"></ion-radio>
+          </ion-item>
+          <ion-item>
+            <ion-label>Delivered</ion-label>
+            <ion-radio slot="end" value="Delivered"></ion-radio>
+          </ion-item>
+          <ion-item>
+            <ion-label>Cancelled</ion-label>
+            <ion-radio slot="end" value="Cancelled"></ion-radio>
+          </ion-item>
+        </ion-radio-group>
+      </ion-list>
+      <div class="ion-padding">
+        <ion-button expand="block" (click)="updateOrderStatus()">Update Status</ion-button>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
