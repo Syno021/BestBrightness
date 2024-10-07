@@ -1,5 +1,10 @@
-<ion-content class="body">
+<!-- <div class="auth-container"> -->
+<ion-content>
+
   <ion-card [class.expand]="isRegister">
+    <!-- <div class="avatar-div"> -->
+      <div class="avatar"></div>
+   <!-- </div> -->
     <ion-card-header>
       <ion-card-title>{{ isRegister ? 'Register' : 'Login' }}</ion-card-title>
       <ion-card-subtitle>{{ isRegister ? 'Fill the registration form' : 'Enter your login details' }}</ion-card-subtitle>
@@ -8,44 +13,61 @@
     <ion-card-content>
       <!-- Fields for Login -->
       <div *ngIf="!isRegister">
-        <ion-item>
+        <div class="input-group email">
+          <ion-item>
+            <ion-icon name="mail-outline" slot="start"></ion-icon>
           <ion-input label="Email" labelPlacement="floating" placeholder="Enter email" [(ngModel)]="loginData.email"></ion-input>
         </ion-item>
-        <ion-item>
+        </div>
+
+        <div class="input-group password" >
+          <ion-item>
+            <ion-icon name="lock-closed-outline" slot="start"></ion-icon> 
           <ion-input label="Password" labelPlacement="floating" placeholder="Enter password" [(ngModel)]="loginData.password" type="password"></ion-input>
+          </ion-item>
+        </div>
+      <div class="remember-forgot">
+        <ion-item lines="none">
+          <ion-checkbox slot="start">Remember me</ion-checkbox>
         </ion-item>
+        <a href="#" class="forgot-password">Forgot Password?</a>
       </div>
+    </div>
 
       <!-- Fields for Registration -->
       <div *ngIf="isRegister">
-        <ion-item>
+        <div class="input-group">
           <ion-input label="Username" labelPlacement="floating" placeholder="Enter your username" [(ngModel)]="userData.username"></ion-input>
-        </ion-item>
-        <ion-item>
+        </div>
+        <div class="input-group">
           <ion-input label="First Name" labelPlacement="floating" placeholder="Enter your first name" [(ngModel)]="userData.first_name"></ion-input>
-        </ion-item>
-        <ion-item>
+        </div>
+        <div class="input-group">
           <ion-input label="Last Name" labelPlacement="floating" placeholder="Enter your last name" [(ngModel)]="userData.last_name"></ion-input>
-        </ion-item>
-        <ion-item>
+        </div>
+        <div class="input-group email">
           <ion-input label="Email" labelPlacement="floating" placeholder="Enter email" [(ngModel)]="userData.email"></ion-input>
-        </ion-item>
-        <ion-item>
+        </div>
+        <div class="input-group password">
           <ion-input label="Password" labelPlacement="floating" placeholder="Enter password" [(ngModel)]="userData.password" type="password"></ion-input>
-        </ion-item>
-        <ion-item>
+        </div>
+        <div class="input-group password">
           <ion-input label="Confirm Password" labelPlacement="floating" placeholder="Confirm password" [(ngModel)]="userData.confirmPassword" type="password"></ion-input>
-        </ion-item>
+        </div>
       </div>
 
       <!-- Submit Button -->
-      <ion-button expand="full" (click)="submitForm()">{{ isRegister ? 'Register' : 'Login' }}</ion-button>
+      <ion-button expand="block" (click)="submitForm()">{{ isRegister ? 'Register' : 'Login' }}</ion-button>
 
       <!-- Checkbox to toggle between Login and Register -->
-      <ion-item lines="none">
-        <ion-label>Register</ion-label>
+      <div class="register">
+        <!-- <ion-label>Register</ion-label>
         <ion-checkbox slot="end" [(ngModel)]="isRegister"></ion-checkbox>
-      </ion-item>
+      </ion-item> -->
+      <ion-text>{{ isRegister ? 'Already have an account?' : 'Don\'t have an account?' }}</ion-text>
+          <a (click)="isRegister = !isRegister">{{ isRegister ? 'Login' : 'Register' }}</a>
+        </div>
     </ion-card-content>
   </ion-card>
+
 </ion-content>
