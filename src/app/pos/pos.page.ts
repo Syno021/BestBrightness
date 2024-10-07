@@ -34,6 +34,8 @@ export class POSPage implements OnInit {
   paymentType: string = '';
   isCheckoutComplete: boolean = false;
   amountPaid: number = 0;
+  amountPaidInput: string = '';
+
 
   constructor(private alertController: AlertController, private http: HttpClient) {}
 
@@ -145,33 +147,13 @@ addToCart(product: Product) {
       await this.showAlert('Payment Type Required', 'Please select a payment type before checkout.');
       return;
     }
-
+  
     if (this.paymentType === 'cash') {
-      // Prompt for amount paid when cash is selected
-      const alert = await this.alertController.create({
-        header: 'Amount Paid',
-        inputs: [
-          {
-            name: 'amount',
-            type: 'number',
-            placeholder: 'Enter Amount Paid'
-          }
-        ],
-        buttons: [
-          {
-            text: 'Cancel',
-            role: 'cancel'
-          },
-          {
-            text: 'Confirm',
-            handler: (data) => {
-              this.amountPaid = parseFloat(data.amount);
-              this.handleCashPayment();
-            }
-          }
-        ]
-      });
-      await alert.present();
+      if (!this.amountPaidInput) {
+        await this.showAlert('Amount Required', 'Please enter the amount paid for cash transactions.');
+        return;
+      }
+      this.handleCashPayment();
     } else {
       // Handle other payment types (e.g., credit card) here
       const alert = await this.alertController.create({
@@ -193,13 +175,16 @@ addToCart(product: Product) {
       await alert.present();
     }
   }
+  
+  
 
   handleCashPayment() {
+    this.amountPaid = parseFloat(this.amountPaidInput); // Use the numpad input
     if (this.amountPaid < this.getTotal()) {
       this.showAlert('Insufficient Amount', 'The amount paid is less than the total due.');
       return;
     }
-
+  
     const change = this.amountPaid - this.getTotal();
     const alert = this.alertController.create({
       header: 'Checkout',
@@ -220,6 +205,9 @@ addToCart(product: Product) {
     
     alert.then(a => a.present());
   }
+
+  
+  
   completeTransaction() {
     this.cart.forEach(item => {
       const product = this.allProducts.find(p => p.barcode === item.barcode);
@@ -230,10 +218,11 @@ addToCart(product: Product) {
 
     this.showAlert('Transaction Complete', 'Thank you for your purchase!');
 
-    this.isCheckoutComplete = true;
-    this.cart = [];
-    this.paymentType = '';
-  }
+  this.isCheckoutComplete = true;
+  this.cart = [];
+  this.paymentType = '';
+  this.amountPaidInput = ''; // Reset the amount paid input
+}
 
   onBarcodeEnter() {
     const product = this.allProducts.find(p => p.barcode === this.barcodeInput);
@@ -305,16 +294,37 @@ addToCart(product: Product) {
   }
 
   appendToNumpad(value: string) {
-    this.barcodeInput += value;
+    if (value === 'C') {
+      this.clearNumpad();
+    } else if (value === 'Enter') {
+      this.onBarcodeEnter();
+    } else {
+      // Check if the payment type is cash and append to amountPaidInput
+      if (this.paymentType === 'cash') {
+        this.amountPaidInput += value; // Append the value to the amount paid
+      } else {
+        this.barcodeInput += value; // Append to barcode input
+      }
+    }
   }
 
   clearNumpad() {
-    this.barcodeInput = '';
+    // Clear the appropriate input based on payment type
+    if (this.paymentType === 'cash') {
+      this.amountPaidInput = ''; // Clear amount paid input
+    } else {
+      this.barcodeInput = ''; // Clear barcode input
+    }
   }
-
+  
   submitNumpad() {
-    this.onBarcodeEnter();
+    if (this.isCheckoutComplete) {
+      this.handleCashPayment();  // Handle the payment when "Enter" is pressed during checkout
+    } else {
+      this.onBarcodeEnter();     // Handle barcode entry
+    }
   }
+  
 
   private async showAlert(header: string, message: string) {
     const alert = await this.alertController.create({
