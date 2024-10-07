@@ -31,6 +31,10 @@ export class AppComponent {
     this.initializeApp();
   }
 
+  navigateToAuth() {
+    this.router.navigate(['/auth']);
+  }
+
   initializeApp() {
     this.menu.enable(true, 'first');
     this.router.events.pipe(
