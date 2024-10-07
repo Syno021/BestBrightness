@@ -155,8 +155,9 @@
           <!-- Cover Image Upload -->
           <ion-item>
             <ion-label position="stacked">Cover Image</ion-label>
+            <br>
             <video #videoElement [hidden]="!showVideoPreview" autoplay></video>
-            <button class="small-button" (click)="captureImage()">
+            <button class="small-button" (click)="takeCoverPicture($event)">
               <ion-icon name="camera-outline" slot="start"></ion-icon>
               Upload Cover Image
           </button>
@@ -164,12 +165,13 @@
               <img [src]="'data:image/jpeg;base64,' + coverImageBase64" alt="Cover Image">
             </ion-thumbnail>
           </ion-item>
-          <button class="small-button" (click)="takeCoverPicture()">Open Camera</button>
+          <!-- <button class="small-button" >Open Camera</button> -->
 
           <!-- Additional Images Upload -->
           <ion-item>
             <ion-label position="stacked">Additional Images</ion-label>
-            <button class="small-button" (click)="takeAdditionalPicture()">
+            <br>
+            <button class="small-button" (click)="takeAdditionalPicture($event)">
               <ion-icon name="images-outline" slot="start"></ion-icon>
               Add Additional Image
           </button>
@@ -178,13 +180,15 @@
                 <ion-col size="4" *ngFor="let img of additionalImagesBase64; let i = index">
                   <ion-thumbnail>
                     <img [src]="'data:image/jpeg;base64,' + img" alt="Additional Image">
-                    <ion-button fill="clear" (click)="removeAdditionalImage(i)">
+                    <ion-button fill="clear" (click)="removeAdditionalImage(i, $event)">
                       <ion-icon name="close-circle"></ion-icon>
                     </ion-button>
                   </ion-thumbnail>
                 </ion-col>
               </ion-row>
             </ion-grid>
+            <br>
+            <br>
           </ion-item>
 
           <button class="full-button" type="submit">Add Item</button>

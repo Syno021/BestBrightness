@@ -277,7 +277,8 @@ export class AdminInventoryManagementPage implements OnInit {
     return permissions.camera === 'granted';
   }
   
-  async takeCoverPicture() {
+  async takeCoverPicture(event: Event) {
+    event.preventDefault();
     const loading = await this.loadingController.create({
       message: 'Opening camera...',
     });
@@ -302,7 +303,8 @@ export class AdminInventoryManagementPage implements OnInit {
   }
 
 
-  async captureImage() {
+  async captureImage(event: Event) {
+    event.preventDefault();
     try {
       const imageData = await this.cameraService.captureImage();
       this.coverImageBase64 = imageData;
@@ -317,7 +319,8 @@ export class AdminInventoryManagementPage implements OnInit {
   }
   
 
-async takeAdditionalPicture() {
+async takeAdditionalPicture(event: Event) {
+  event.preventDefault();
     const loading = await this.loadingController.create({
         message: 'Opening camera for additional image...',
     });
@@ -364,7 +367,8 @@ async takeAdditionalPicture() {
     });
   }
 
-  removeAdditionalImage(index: number) {
+  removeAdditionalImage(index: number, event: Event) {
+    event.preventDefault();
     this.additionalImagesBase64.splice(index, 1);
   }
 
