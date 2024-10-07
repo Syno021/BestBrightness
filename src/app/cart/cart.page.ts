@@ -6,6 +6,10 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { ChangeDetectorRef } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { AngularFireStorage } from '@angular/fire/compat/storage';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+import jsPDF from 'jspdf';
+import { LoadingController} from '@ionic/angular';
 // import { AddressModalComponent } from './address-modal.component';
 
 @Component({
@@ -18,6 +22,8 @@ export class CartPage implements OnInit {
   deliveryMethod: string = 'delivery';
   selectedAddress: any = null;
   savedAddresses: any[] = []; // Fetch this from a service or storage
+  userId: string | null = null;
+  userEmail: string | null = null;
 
   subtotal: number = 0;
   tax: number = 0;
@@ -28,16 +34,35 @@ export class CartPage implements OnInit {
 
   constructor(
     private cartService: CartService, 
-    // private router: Router,
      private alertController: AlertController,
      private toastController: ToastController,
      private cd: ChangeDetectorRef,
-     private http: HttpClient
-    //  private modalController: ModalController
+     private http: HttpClient,
+     private afStorage: AngularFireStorage,
+     private loadingController: LoadingController,
+     private firestore: AngularFirestore
   ) {}
 
   ngOnInit() {
     this.loadCart();
+    this.getUserId();
+    this.getUserEmail();
+  }
+
+  getUserId() {
+    this.userId = sessionStorage.getItem('userId');
+    if (!this.userId) {
+      console.warn('User is not logged in');
+      // You might want to redirect to login page or show a message
+    }
+  }
+
+  getUserEmail() {
+    this.userEmail = sessionStorage.getItem('userEmail');
+    if (!this.userEmail) {
+      console.warn('User email not found in session storage');
+      // You might want to redirect to login page or show a message
+    }
   }
 
   ngOnDestroy() {
@@ -232,70 +257,122 @@ updateQuantity(productId: number, newQuantity: number) {
   //   });
   // }
 
-  PlaceOrder = async (): Promise<void> => {
-    if (this.cartItems.length === 0) {
-      const alert = await this.alertController.create({
-        header: 'Empty Cart',
-        message: 'Your cart is empty. Add some items before placing order.',
-        buttons: ['OK']
-      });
-      await alert.present();
-      return;
-    }
-  
-    // Prepare the order data
-    const orderData = {
-      user_id: 2, // Replace with actual user ID from your authentication system
-      total_amount: this.total,
-      order_type: this.deliveryMethod,
-      status: 'pending',
-      items: this.cartItems
-    };
-  
-    console.log('Order data being sent:', JSON.stringify(orderData, null, 2));
-  
-    // Send the order data to the PHP script
-    this.http.post('http://localhost/user_api/orders.php', orderData, { observe: 'response' }).subscribe(
-      async (response: any) => {
-        console.log('Full response:', response);
-        if (response.body && response.body.success) {
-          const alert = await this.alertController.create({
-            header: 'Order Placed',
-            message: `Your order for R${this.total.toFixed(2)} has been placed successfully!`,
-            buttons: [
-              {
-                text: 'OK',
-                handler: () => {
-                  this.cartService.clearCart();
-                  this.cartItems = [];
-                  this.calculateTotals();
-                  alert.dismiss();
-                }
-              }
-            ]
-          });
-          await alert.present();
-  
-          // Automatically dismiss the alert after 3 seconds
-          setTimeout(() => {
-            alert.dismiss();
-          }, 3000);
-        } else {
-          console.error('Server response indicates failure:', response.body);
-          this.showToast('Failed to place order. Please try again.');
-        }
-      },
-      error => {
-        console.error('Error placing order:', error);
-        if (error.error instanceof ErrorEvent) {
-          // Client-side error
-          console.error('Client-side error:', error.error.message);
-        } else {
-          // Server-side error
-          console.error('Server-side error:', error.status, error.error);
-        }
-        this.showToast('An error occurred while placing your order. Please try again.');
+  async PlaceOrder(): Promise<void> {
+    try {
+      if (this.cartItems.length === 0) {
+        const alert = await this.alertController.create({
+          header: 'Empty Cart',
+          message: 'Your cart is empty. Add some items before placing an order.',
+          buttons: ['OK']
+        });
+        await alert.present();
+        return;
       }
-    );
+
+      if (!this.userEmail) {
+        this.showToast('User email not found. Please log in again.');
+        return;
+      }
+
+      console.log('Starting order placement process');
+
+      // Generate PDF
+      const pdf = new jsPDF();
+      let yPos = 20;
+      pdf.setFontSize(18);
+      pdf.text('Order Details', 20, yPos);
+      yPos += 10;
+      pdf.setFontSize(12);
+      this.cartItems.forEach((item, index) => {
+        pdf.text(`${index + 1}. ${item.name} - Quantity: ${item.quantity} - Price: R${item.price.toFixed(2)}`, 20, yPos);
+        yPos += 10;
+      });
+      yPos += 10;
+      pdf.setFontSize(14);
+      pdf.text(`Total: R${this.total.toFixed(2)}`, 20, yPos);
+      yPos += 10;
+      pdf.text(`Order Type: ${this.deliveryMethod}`, 20, yPos);
+
+      console.log('PDF generated');
+
+      // Save PDF to a Blob
+      const pdfBlob = pdf.output('blob');
+
+      // Prepare the order data
+      const orderData = {
+        user_id: this.userId,
+        total_amount: this.total,
+        order_type: this.deliveryMethod,
+        status: 'pending',
+        items: this.cartItems,
+        created_at: new Date()
+      };
+
+      console.log('Order data prepared:', JSON.stringify(orderData, null, 2));
+
+      // Send the email with PDF Blob
+      await this.sendOrderEmail(this.userEmail, pdfBlob);
+
+      // Send order data to server
+      const response = await this.http.post<{ success: boolean, message: string }>(
+        'http://localhost/user_api/orders.php', 
+        orderData
+      ).toPromise();
+
+      if (response && response.success) {
+        const firestoreOrderId = new Date().getTime().toString();
+        const firestoreOrderData = { ...orderData, firestore_order_id: firestoreOrderId };
+        await this.firestore.collection('orders').doc(firestoreOrderId).set(firestoreOrderData);
+        const alert = await this.alertController.create({
+          header: 'Order Placed',
+          message: `Your order for R${this.total.toFixed(2)} has been placed successfully!`,
+          buttons: ['OK']
+        });
+        await alert.present();
+        this.cartService.clearCart();
+        this.cartItems = [];
+        this.calculateTotals();
+      } else {
+        throw new Error('Server response indicates failure');
+      }
+    } catch (error) {
+      console.error('Error in order placement process:', error);
+      this.showToast('An error occurred while placing your order. Please try again.');
+    }
   }
+
+
+// Function to send email with PDF order details
+async sendOrderEmail(email: string, pdfBlob: Blob): Promise<void> {
+    const loader = await this.loadingController.create({
+        message: 'Sending Email...',
+        cssClass: 'custom-loader-class'
+    });
+    await loader.present();
+
+    const url = "http://localhost/Bestbrightness/src/send_email.php";
+    const subject = "Order Details";
+    const body = "Please find the attached order details PDF.";
+    
+    // Create FormData to send as POST request
+    const formData = new FormData();
+    formData.append('recipient', email);
+    formData.append('subject', subject);
+    formData.append('body', body);
+    formData.append('pdf', pdfBlob, `Order_${new Date().getTime()}.pdf`); // Attach the PDF blob
+
+    this.http.post(url, formData).subscribe(
+        async (response) => {
+            loader.dismiss();
+            this.showToast('Email sent successfully!');
+        },
+        (error) => {
+            loader.dismiss();
+            console.error('Error sending email:', error);
+            this.showToast('Failed to send email. Please try again.');
+        }
+    );
+}
+
+  
 }

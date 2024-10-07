@@ -62,14 +62,16 @@ export class AdminUserManagementPage implements OnInit {
   // Method to handle form submission
   async submitForm() {
     if (this.firstName && this.lastName && this.email) {
+      const username = this.generateUsername();
       const newUser = {
-        username: this.generateUsername(),
+        username: username,
         first_name: this.firstName,
         last_name: this.lastName,
         email: this.email,
-        password: this.generateUsername(), // Password same as username
+        password: username, // Password same as username
         role: this.role
       };
+      console.log(newUser);
 
       this.http.post<{status: number, message: string}>('http://localhost/user_api/register.php', newUser)
         .subscribe(async (response) => {

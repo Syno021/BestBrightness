@@ -20,9 +20,9 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-button expand="block" (click)="openCategoryManagementModal()">
+  <button class="full-button" (click)="openCategoryManagementModal()">
     Manage Categories
-  </ion-button>
+  </button>
 
   <!-- Inventory List -->
   <ion-card class="custom-card">
@@ -50,8 +50,12 @@
             </span>
           </ion-col>
           <ion-col>
-            <ion-button size="small" color="primary" (click)="editItem(item)">Edit</ion-button>
-            <ion-button size="small" color="danger" (click)="deleteItem(item.product_id)">Delete</ion-button>
+            <ion-button (click)="editItem(item)" fill="clear" color="primary">
+              <ion-icon name="eye-outline"></ion-icon> <!-- View Details icon -->
+            </ion-button>
+            <ion-button (click)="deleteItem(item.product_id)" fill="clear" color="danger">
+              <ion-icon name="trash-outline"></ion-icon> <!-- Cancel Order icon -->
+            </ion-button>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -152,23 +156,23 @@
           <ion-item>
             <ion-label position="stacked">Cover Image</ion-label>
             <video #videoElement [hidden]="!showVideoPreview" autoplay></video>
-            <ion-button expand="block" (click)="captureImage()">
+            <button class="small-button" (click)="captureImage()">
               <ion-icon name="camera-outline" slot="start"></ion-icon>
               Upload Cover Image
-          </ion-button>
+          </button>
             <ion-thumbnail *ngIf="coverImageBase64" class="ion-margin-top">
               <img [src]="'data:image/jpeg;base64,' + coverImageBase64" alt="Cover Image">
             </ion-thumbnail>
           </ion-item>
-          <ion-button (click)="takeCoverPicture()">Open Camera</ion-button>
+          <button class="small-button" (click)="takeCoverPicture()">Open Camera</button>
 
           <!-- Additional Images Upload -->
           <ion-item>
             <ion-label position="stacked">Additional Images</ion-label>
-            <ion-button expand="block" (click)="takeAdditionalPicture()">
+            <button class="small-button" (click)="takeAdditionalPicture()">
               <ion-icon name="images-outline" slot="start"></ion-icon>
               Add Additional Image
-          </ion-button>
+          </button>
             <ion-grid>
               <ion-row>
                 <ion-col size="4" *ngFor="let img of additionalImagesBase64; let i = index">
@@ -183,7 +187,7 @@
             </ion-grid>
           </ion-item>
 
-          <ion-button expand="block" type="submit" class="ion-margin-top">Add Item</ion-button>
+          <button class="full-button" type="submit">Add Item</button>
         </form>
       </ion-content>
     </ng-template>
@@ -191,11 +195,6 @@
 
 
   <!-- Action Buttons -->
-  <ion-footer>
-    <ion-toolbar>
-      <ion-buttons slot="end">
-        <ion-button color="success" (click)="presentAddItemModal()">Add New Item</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-footer>
-</ion-content>
+<button class="fab" (click)="presentAddItemModal()">
+  <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+</button>
