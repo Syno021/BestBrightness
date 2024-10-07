@@ -68,14 +68,26 @@
           <span>R{{ getTotal().toFixed(2) }}</span>
         </div>
       </div>
-      <div class="barcode-input">
-        <ion-input [(ngModel)]="barcodeInput" placeholder="Enter Barcode" (keyup.enter)="onBarcodeEnter()"></ion-input>
-      </div>
-      <div class="numpad">
-        <ion-button *ngFor="let num of [1,2,3,4,5,6,7,8,9,'C',0,'Enter']" (click)="num === 'C' ? clearNumpad() : num === 'Enter' ? submitNumpad() : appendToNumpad(num.toString())">
-          {{num}}
-        </ion-button>
-      </div>
+     <!-- Amount Paid Input -->
+     <div class="amount-input">
+      <ion-input
+        type="number"
+        placeholder="Enter Amount Paid"
+        [(ngModel)]="amountPaidInput"
+        [required]="paymentType === 'cash'"
+        [disabled]="paymentType !== 'cash'">
+      </ion-input>
+    </div>
+    <!-- Barcode Input -->
+    <div class="barcode-input">
+      <ion-input [(ngModel)]="barcodeInput" placeholder="Enter Barcode" (keyup.enter)="onBarcodeEnter()"></ion-input>
+    </div>
+    <div class="numpad">
+      <ion-button *ngFor="let num of [1,2,3,4,5,6,7,8,9,'C',0,'Enter']"
+        (click)="num === 'C' ? clearNumpad() : num === 'Enter' ? submitNumpad() : appendToNumpad(num.toString())">
+        {{num}}
+      </ion-button>
+    </div>     
     </div>
   </div>
 </ion-content>
