@@ -76,11 +76,11 @@ ion-segment {
 }
 
 .cart-section {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
+  max-height: 400px; /* Set a max height to allow scrolling */
+  overflow-y: auto;  /* Enable vertical scrolling */
   padding: 10px;
 }
+
 
 .cart-items {
   flex: 1;
