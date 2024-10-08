@@ -70,7 +70,7 @@
                 <ion-card-title>Total Sales Amount</ion-card-title>
               </ion-card-header>
               <ion-card-content>
-                <h2>{{ totalSalesAmount | currency }}</h2>
+                <h2>R{{ totalSalesAmount}}</h2>
               </ion-card-content>
             </ion-card>
           </ion-col>
@@ -93,8 +93,23 @@
           <ion-card-title>Sales Overview</ion-card-title>
         </ion-card-header>
         <ion-card-content>
-          <!-- Placeholder for chart -->
-          <div class="chart-placeholder">Chart Here</div>
+          <div>
+            <canvas #salesChart></canvas>
+          </div>
+          <ion-segment (ionChange)="changeFilter($event)" [value]="currentFilter">
+            <ion-segment-button value="day">
+              <ion-label>Day</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="week">
+              <ion-label>Week</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="month">
+              <ion-label>Month</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="year">
+              <ion-label>Year</ion-label>
+            </ion-segment-button>
+          </ion-segment>
         </ion-card-content>
       </ion-card>
 

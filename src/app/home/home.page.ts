@@ -31,6 +31,7 @@ export class HomePage {
   }
 
   viewAccount() {
+    this.router.navigate(['/account']);
     console.log('Navigating to account page');
     // Add navigation logic here
   }

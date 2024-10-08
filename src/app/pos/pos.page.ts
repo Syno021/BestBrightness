@@ -3,6 +3,7 @@ import { AlertController } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 interface Product {
+  id: any;
   product_id: number;
   name: string;
   description: string;
@@ -17,6 +18,7 @@ interface Product {
   updated_at: string;
   quantity?: number;
 }
+
 
 @Component({
   selector: 'app-pos',
@@ -35,9 +37,11 @@ export class POSPage implements OnInit {
   isCheckoutComplete: boolean = false;
   amountPaid: number = 0;
   amountPaidInput: string = '';
+  cartItems: any[] = [];
 
 
-  constructor(private alertController: AlertController, private http: HttpClient) {}
+  constructor(private alertController: AlertController,
+              private http: HttpClient) {}
 
   ngOnInit() {
     this.loadProducts();
@@ -60,6 +64,89 @@ export class POSPage implements OnInit {
     });
 }
 
+async purchaseProducts() {
+  try {
+    if (this.cart.length === 0) {
+      await this.showAlert('Error', 'Your cart is empty. Please add items before checking out.');
+      return;
+    }
+
+    // Prepare the order data
+    const orderData = {
+      user_id: 2, // Dynamically set based on logged-in user
+      total_amount: this.getTotal(),
+      order_type: "walk-in",
+      status: 'Pending',
+      items: this.cart.map(item => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+        price: item.price
+      }))
+    };
+
+    console.log('Order data:', orderData); // Log order data
+
+    // Create the order
+    const orderResponse = await this.http.post<{ success: boolean, message: string, order_id: number }>(
+      'http://localhost/user_api/orders.php',
+      orderData
+    ).toPromise();
+
+    console.log('Order response:', orderResponse); // Log order response
+
+    // Ensure we received a valid order_id from the backend
+    if (!orderResponse || !orderResponse.success || !orderResponse.order_id) {
+      throw new Error(orderResponse?.message || 'Failed to create order or retrieve order ID');
+    }
+
+    const orderId = orderResponse.order_id;
+    console.log('Successfully retrieved order_id:', orderId); // Log the order_id
+
+    // Now create the sale using the order_id from the order response
+    const saleData = {
+      order_id: orderId,
+      cashier_id: 14, // You'll need to implement user authentication
+      total_amount: this.getTotal(),
+      payment_method: this.paymentType,
+      amount_paid: parseFloat(this.amountPaidInput) || this.getTotal() // Use amount paid for cash, total for card
+    };
+
+    console.log('Sale data:', saleData); // Log sale data
+
+    const saleResponse = await this.http.post<{ success: boolean, message: string, sale_id: number }>(
+      'http://localhost/user_api/sales.php',
+      saleData
+    ).toPromise();
+
+    console.log('Sale response:', saleResponse); // Log sale response
+
+    if (!saleResponse || !saleResponse.success) {
+      throw new Error(saleResponse?.message || 'Failed to record sale');
+    }
+
+    console.log('Sale recorded:', saleResponse);
+    await this.showAlert('Transaction Complete', `Thank you for your purchase! Order ID: ${orderId}`);
+    this.resetCart();
+    this.isCheckoutComplete = true; // Enable the print receipt button
+
+  } catch (error) {
+    console.error('Error completing transaction:', error);
+    if (error instanceof HttpErrorResponse) {
+      console.error('Error details:', error.error);
+    }
+    await this.showAlert('Error', 'There was an error completing the transaction. Please try again.');
+  }
+}
+
+
+
+
+resetCart() {
+  this.cart = [];
+  this.paymentType = '';
+  this.amountPaidInput = '';
+  this.isCheckoutComplete = true;
+}
 
   extractCategories() {
     const categorySet = new Set(this.allProducts.map(product => product.category || 'Other'));

@@ -9,6 +9,8 @@ import { HttpClient } from '@angular/common/http';
 export class AdminSalesReportPage implements OnInit {
   salesData: any[] = [];
   totalSalesAmount: number = 0;
+  totalOrders: number = 0;
+  averageOrderValue: number = 0;
 
   constructor(private http: HttpClient) {}
 
@@ -21,6 +23,16 @@ export class AdminSalesReportPage implements OnInit {
       .subscribe(response => {
         this.salesData = response.salesData;
         this.totalSalesAmount = response.totalSalesAmount;
+        this.totalOrders = this.salesData.length;
+        this.calculateAverageOrderValue();
       });
+  }
+
+  calculateAverageOrderValue() {
+    if (this.totalOrders > 0) {
+      this.averageOrderValue = this.totalSalesAmount / this.totalOrders;
+    } else {
+      this.averageOrderValue = 0;
+    }
   }
 }

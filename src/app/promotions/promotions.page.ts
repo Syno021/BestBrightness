@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 interface Promotion {
-  id: number;
-  title: string;
+  promotion_id: number;
+  product_id: number;
+  product_name: string;
+  name: string;
   description: string;
-  discount: number;
-  endDate: Date;
+  discount_percentage: number;
+  start_date: string;
+  end_date: string;
 }
 
 @Component({
@@ -15,47 +19,36 @@ interface Promotion {
 })
 export class PromotionsPage implements OnInit {
 
-  promotions: Promotion[] = [
-    {
-      id: 1,
-      title: 'Summer Sale',
-      description: 'Get 20% off on all summer products!',
-      discount: 20,
-      endDate: new Date('2024-11-30T23:59:59') // Fixed invalid date
-    },
-    {
-      id: 2,
-      title: 'New Customer Discount',
-      description: 'Sign up and get 15% off your first purchase!',
-      discount: 15,
-      endDate: new Date('2024-12-31T23:59:59')
-    },
-    {
-      id: 3,
-      title: 'Flash Sale',
-      description: 'Limited time offer: 30% off selected items!',
-      discount: 30,
-      endDate: new Date('2024-09-17T18:00:00')
-    }
-  ];
-  
+  promotions: Promotion[] = [];
 
-  constructor() { }
+  constructor(private http: HttpClient) { }
 
   ngOnInit() {
+    this.fetchPromotions();
   }
 
-  // Method to check if the promotion is still valid (compares current time with endDate)
-  isPromotionValid(endDate: Date): boolean {
+  fetchPromotions() {
+    this.http.get<Promotion[]>('http://localhost/user_api/promotions.php')
+      .subscribe(
+        (response) => {
+          this.promotions = response;
+        },
+        (error) => {
+          console.error('Error fetching promotions:', error);
+        }
+      );
+  }
+
+  isPromotionValid(endDate: string): boolean {
     const now = new Date();
-    return now <= endDate;
+    const promotionEndDate = new Date(endDate);
+    return now <= promotionEndDate;
   }
 
-  // Method to get the remaining days for a promotion
-  getDaysRemaining(endDate: Date): number {
+  getDaysRemaining(endDate: string): number {
     const now = new Date();
-    const diffTime = endDate.getTime() - now.getTime();
-    return Math.ceil(diffTime / (1000 * 3600 * 24)); // Convert milliseconds to days
+    const promotionEndDate = new Date(endDate);
+    const diffTime = promotionEndDate.getTime() - now.getTime();
+    return Math.ceil(diffTime / (1000 * 3600 * 24));
   }
-
 }

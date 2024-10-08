@@ -17,10 +17,11 @@ import { AppRoutingModule } from './app-routing.module';
 import { NavbarComponent } from './navbar/navbar.component';
 import { HttpClientModule } from '@angular/common/http';
 import { CategoryManagementComponent } from './category-management/category-management.component';
+import { PromotionManagementComponent } from './promotion-management/promotion-management.component';
 
 @NgModule({
   
-  declarations: [AppComponent, NavbarComponent, CategoryManagementComponent],
+  declarations: [AppComponent, NavbarComponent, CategoryManagementComponent, PromotionManagementComponent],
   imports: [
     BrowserModule,
     FormsModule,

@@ -99,6 +99,7 @@ CREATE TABLE SALES (
     order_id INT,
     cashier_id INT,
     total_amount DECIMAL(10, 2) NOT NULL,
+    amount_paid DECIMAL(10, 2) NOT NULL,
     payment_method ENUM('cash', 'card', 'online') NOT NULL,
     sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES ORDERS(order_id),

@@ -3,7 +3,6 @@
     <ion-title>Admin Sales Report</ion-title>
   </ion-toolbar>
 </ion-header>
-
 <ion-content [fullscreen]="true">
   <!-- Collapsible Header -->
   <ion-header collapse="condense">
@@ -11,10 +10,8 @@
       <ion-title size="large">Admin Sales Report</ion-title>
     </ion-toolbar>
   </ion-header>
-
   <!-- Main Content -->
   <ion-content>
-
     <!-- Sales Summary Cards -->
     <ion-grid>
       <ion-row>
@@ -24,7 +21,7 @@
               <ion-card-title>Total Sales</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <h2>\${{ totalSalesAmount.toFixed(2) }}</h2>
+              <h2>R{{ totalSalesAmount.toFixed(2) }}</h2>
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -34,7 +31,7 @@
               <ion-card-title>Total Orders</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <h2>789</h2>
+              <h2>{{ totalOrders }}</h2>
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -44,7 +41,7 @@
               <ion-card-title>Average Order Value</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <h2>$12.98</h2>
+              <h2>R{{ averageOrderValue.toFixed(2) }}</h2>
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -60,18 +57,6 @@
         </ion-col>
       </ion-row>
     </ion-grid>
-
-    <!-- Sales Charts -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Sales Overview</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <!-- Placeholder for chart -->
-        <div style="height: 300px; background: #eaeaea; text-align: center; line-height: 300px;">Chart Here</div>
-      </ion-card-content>
-    </ion-card>
-
     <!-- Sales Table -->
     <ion-card>
       <ion-card-header>
@@ -92,7 +77,7 @@
             <ion-col>{{ sale.sale_date | date: 'yyyy-MM-dd' }}</ion-col>
             <ion-col>{{ sale.order_id }}</ion-col>
             <ion-col>{{ sale.cashier_id }}</ion-col>
-            <ion-col>\${{ sale.total_amount }}</ion-col>
+            <ion-col>R{{ sale.total_amount }}</ion-col>
             <ion-col>{{ sale.payment_method }}</ion-col>
           </ion-row>
         </ion-grid>

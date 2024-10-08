@@ -17,6 +17,7 @@ import {
   ToastController,
 } from '@ionic/angular';
 import { CategoryManagementComponent } from '../category-management/category-management.component';
+import { PromotionManagementComponent } from '../promotion-management/promotion-management.component';
 
 interface Product {
   product_id: number;
@@ -88,6 +89,13 @@ export class AdminInventoryManagementPage implements OnInit {
   async openCategoryManagementModal() {
     const modal = await this.modalController.create({
       component: CategoryManagementComponent
+    });
+    return await modal.present();
+  }
+
+  async openPromotionManagementModal() {
+    const modal = await this.modalController.create({
+      component: PromotionManagementComponent
     });
     return await modal.present();
   }
