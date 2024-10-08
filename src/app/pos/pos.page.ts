@@ -73,7 +73,6 @@ async purchaseProducts() {
       return;
     }
 
-    // Prepare the order data
     const orderData = {
       user_id: 2, // Dynamically set based on logged-in user
       total_amount: this.getTotal(),
@@ -86,50 +85,36 @@ async purchaseProducts() {
       }))
     };
 
-    console.log('Order data:', orderData); // Log order data
-
-    // Create the order
     const orderResponse = await this.http.post<{ success: boolean, message: string, order_id: number }>(
       'http://localhost/user_api/orders.php',
       orderData
     ).toPromise();
 
-    console.log('Order response:', orderResponse); // Log order response
-
-    // Ensure we received a valid order_id from the backend
     if (!orderResponse || !orderResponse.success || !orderResponse.order_id) {
       throw new Error(orderResponse?.message || 'Failed to create order or retrieve order ID');
     }
 
     const orderId = orderResponse.order_id;
-    console.log('Successfully retrieved order_id:', orderId); // Log the order_id
 
-    // Now create the sale using the order_id from the order response
     const saleData = {
       order_id: orderId,
       cashier_id: 14, // You'll need to implement user authentication
       total_amount: this.getTotal(),
       payment_method: this.paymentType,
-      amount_paid: parseFloat(this.amountPaidInput) || this.getTotal() // Use amount paid for cash, total for card
+      amount_paid: this.paymentType === 'cash' ? parseFloat(this.amountPaidInput) : this.getTotal()
     };
-
-    console.log('Sale data:', saleData); // Log sale data
 
     const saleResponse = await this.http.post<{ success: boolean, message: string, sale_id: number }>(
       'http://localhost/user_api/sales.php',
       saleData
     ).toPromise();
 
-    console.log('Sale response:', saleResponse); // Log sale response
-
     if (!saleResponse || !saleResponse.success) {
       throw new Error(saleResponse?.message || 'Failed to record sale');
     }
 
-    console.log('Sale recorded:', saleResponse);
     await this.showAlert('Transaction Complete', `Thank you for your purchase! Order ID: ${orderId}`);
-    this.resetCart();
-    this.isCheckoutComplete = true; // Enable the print receipt button
+    this.completeTransaction();
 
   } catch (error) {
     console.error('Error completing transaction:', error);
@@ -242,9 +227,9 @@ addToCart(product: Product) {
         await this.showAlert('Amount Required', 'Please enter the amount paid for cash transactions.');
         return;
       }
-      this.handleCashPayment();
+      await this.handleCashPayment();
     } else {
-      this.showCheckoutAlert();
+      await this.showCheckoutAlert();
     }
   }
   
@@ -254,13 +239,12 @@ addToCart(product: Product) {
     this.amountPaid = parseFloat(this.amountPaidInput);
     const total = this.getTotal();
     if (this.amountPaid < total) {
-      this.showAlert('Insufficient Amount', 'The amount paid is less than the total due.');
+      await this.showAlert('Insufficient Amount', 'The amount paid is less than the total due.');
       return;
     }
   
     const change = this.amountPaid - total;
   
-    // Create an alert with the payment details
     const alert = await this.alertController.create({
       header: 'Checkout',
       message: `
@@ -278,7 +262,7 @@ addToCart(product: Product) {
         {
           text: 'Confirm',
           handler: () => {
-            this.completeTransaction();
+            this.purchaseProducts();
           }
         }
       ]
@@ -293,9 +277,7 @@ addToCart(product: Product) {
   
     const alert = await this.alertController.create({
       header: 'Checkout',
-      message: `
-        Total: R${total.toFixed(2)}
-      `,
+      message: `Total: R${total.toFixed(2)}`,
       buttons: [
         {
           text: 'Cancel',
@@ -304,7 +286,7 @@ addToCart(product: Product) {
         {
           text: 'Confirm',
           handler: () => {
-            this.completeTransaction();
+            this.purchaseProducts();
           }
         }
       ]
@@ -318,15 +300,16 @@ addToCart(product: Product) {
   completeTransaction() {
     this.prepareReceiptData();
     this.isCheckoutComplete = true;
-    // Reset cart and other necessary states
     this.cart = [];
     this.paymentType = '';
     this.amountPaidInput = '';
+    this.printReceipt(); // Automatically show the receipt after transaction completion
   }
 
   prepareReceiptData() {
     const total = this.getTotal();
-    const change = this.paymentType === 'cash' ? this.amountPaid - total : 0;
+    const amountPaid = this.paymentType === 'cash' ? parseFloat(this.amountPaidInput) : total;
+    const change = this.paymentType === 'cash' ? amountPaid - total : 0;
     
     this.receiptData = {
       date: new Date().toLocaleString(),
@@ -337,8 +320,8 @@ addToCart(product: Product) {
       tax: this.getTax(),
       total: total,
       paymentType: this.paymentType,
-      amountPaid: this.paymentType === 'cash' ? this.amountPaid : null, // Show amount paid only for cash payments
-      change: this.paymentType === 'cash' ? change : null // Include change only for cash payments
+      amountPaid: amountPaid,
+      change: change
     };
   }
   
