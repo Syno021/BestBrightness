@@ -37,6 +37,8 @@ export class POSPage implements OnInit {
   isCheckoutComplete: boolean = false;
   amountPaid: number = 0;
   amountPaidInput: string = '';
+  receiptVisible: boolean = false;
+  receiptData: any = null;
   cartItems: any[] = [];
 
 
@@ -242,40 +244,32 @@ addToCart(product: Product) {
       }
       this.handleCashPayment();
     } else {
-      // Handle other payment types (e.g., credit card) here
-      const alert = await this.alertController.create({
-        header: 'Checkout',
-        message: `Total: R${this.getTotal().toFixed(2)}<br>Payment Type: ${this.paymentType}`,
-        buttons: [
-          {
-            text: 'Cancel',
-            role: 'cancel'
-          },
-          {
-            text: 'Confirm',
-            handler: () => {
-              this.completeTransaction();
-            }
-          }
-        ]
-      });
-      await alert.present();
+      this.showCheckoutAlert();
     }
   }
   
   
 
-  handleCashPayment() {
-    this.amountPaid = parseFloat(this.amountPaidInput); // Use the numpad input
-    if (this.amountPaid < this.getTotal()) {
+  async handleCashPayment() {
+    this.amountPaid = parseFloat(this.amountPaidInput);
+    const total = this.getTotal();
+    if (this.amountPaid < total) {
       this.showAlert('Insufficient Amount', 'The amount paid is less than the total due.');
       return;
     }
   
-    const change = this.amountPaid - this.getTotal();
-    const alert = this.alertController.create({
+    const change = this.amountPaid - total;
+  
+    // Create an alert with the payment details
+    const alert = await this.alertController.create({
       header: 'Checkout',
-      message: `Total: R${this.getTotal().toFixed(2)}<br>Amount Paid: R${this.amountPaid.toFixed(2)}<br>Change: R${change.toFixed(2)}`,
+      message: `
+        Total: R${total.toFixed(2)}
+<br>
+        Amount Paid: R${this.amountPaid.toFixed(2)}
+<br>
+        Change: R${change.toFixed(2)}
+      `,
       buttons: [
         {
           text: 'Cancel',
@@ -289,27 +283,71 @@ addToCart(product: Product) {
         }
       ]
     });
-    
-    alert.then(a => a.present());
+  
+    await alert.present();
+  }
+  
+  // Method to show the checkout alert for non-cash payments
+  async showCheckoutAlert() {
+    const total = this.getTotal();
+  
+    const alert = await this.alertController.create({
+      header: 'Checkout',
+      message: `
+        Total: R${total.toFixed(2)}
+      `,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Confirm',
+          handler: () => {
+            this.completeTransaction();
+          }
+        }
+      ]
+    });
+  
+    await alert.present();
   }
 
   
   
   completeTransaction() {
-    this.cart.forEach(item => {
-      const product = this.allProducts.find(p => p.barcode === item.barcode);
-      if (product) {
-        product.stock_quantity -= item.quantity!;
-      }
-    });
+    this.prepareReceiptData();
+    this.isCheckoutComplete = true;
+    // Reset cart and other necessary states
+    this.cart = [];
+    this.paymentType = '';
+    this.amountPaidInput = '';
+  }
 
-    this.showAlert('Transaction Complete', 'Thank you for your purchase!');
+  prepareReceiptData() {
+    const total = this.getTotal();
+    const change = this.paymentType === 'cash' ? this.amountPaid - total : 0;
+    
+    this.receiptData = {
+      date: new Date().toLocaleString(),
+      cashier: 'John Doe',
+      cashierId: '12345',
+      items: [...this.cart],
+      subtotal: this.getSubtotal(),
+      tax: this.getTax(),
+      total: total,
+      paymentType: this.paymentType,
+      amountPaid: this.paymentType === 'cash' ? this.amountPaid : null, // Show amount paid only for cash payments
+      change: this.paymentType === 'cash' ? change : null // Include change only for cash payments
+    };
+  }
+  
 
-  this.isCheckoutComplete = true;
-  this.cart = [];
-  this.paymentType = '';
-  this.amountPaidInput = ''; // Reset the amount paid input
-}
+  // hideReceipt() {
+  //   this.receiptVisible = false;
+  //   this.receiptData = null;
+  // }
+
 
   onBarcodeEnter() {
     const product = this.allProducts.find(p => p.barcode === this.barcodeInput);
@@ -321,65 +359,18 @@ addToCart(product: Product) {
     }
   }
 
-  async printReceipt() {
+ printReceipt() {
     if (!this.isCheckoutComplete) {
-      await this.showAlert('Cannot Print Receipt', 'Please complete the checkout process before printing the receipt.');
+      this.showAlert('Cannot Print Receipt', 'Please complete the checkout process before printing the receipt.');
       return;
     }
-
-    const formatLine = (left: string, right: string, width: number = 40) => {
-      return left.padEnd(width - right.length) + right;
-    };
-
-    const formatCurrency = (amount: number) => `R${amount.toFixed(2)}`;
-
-    let receiptContent = [
-      'BEST BRIGHTNESS STORE',
-      '123 Main St, City, Country',
-      'Tel: (555) 123-4567',
-      '----------------------------------------',
-      `Date: ${new Date().toLocaleString()}`,
-      `Cashier: John Doe (ID: 12345)`,
-      '----------------------------------------',
-      'Item                  Qty         Price',
-      '----------------------------------------',
-    ];
-
-    this.cart.forEach(item => {
-      const name = item.name.substring(0, 20).padEnd(20);
-      const qty = item.quantity!.toString().padStart(3);
-      const price = formatCurrency(item.price * item.quantity!).padStart(10);
-      receiptContent.push(`${name} ${qty}    ${price}`);
-    });
-
-    const subtotal = formatCurrency(this.getSubtotal());
-    const tax = formatCurrency(this.getTax());
-    const total = formatCurrency(this.getTotal());
-
-    receiptContent = receiptContent.concat([
-      '----------------------------------------',
-      formatLine('Subtotal:', subtotal.padStart(14)),
-      formatLine('Tax (15%):', tax.padStart(14)),
-      '----------------------------------------',
-      formatLine('Total:', total.padStart(14)),
-      '',
-      `Payment: ${this.paymentType === 'cash' ? 'Cash' : 'Credit Card'}`,
-      '----------------------------------------',
-      'THANK YOU FOR SHOPPING WITH US!',
-      '****************************************',
-    ]);
-
-    const alert = await this.alertController.create({
-      header: 'Receipt',
-      message: `<pre style="font-family: monospace; white-space: pre-wrap; font-size: 14px; line-height: 1.2;">${receiptContent.join('\n')}</pre>`,
-      buttons: ['OK'],
-      cssClass: 'receipt-alert'
-    });
-
-    await alert.present();
-    this.isCheckoutComplete = false;
+    this.receiptVisible = true;
   }
 
+  hideReceipt() {
+    this.receiptVisible = false;
+  }
+  
   appendToNumpad(value: string) {
     if (value === 'C') {
       this.clearNumpad();

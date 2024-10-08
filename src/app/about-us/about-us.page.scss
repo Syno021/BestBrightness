@@ -1,66 +1,54 @@
-ion-content {
-    --background: #f4f4f4;
-  
-    .hero-image {
-      height: 200px;
-      background-image: url('/api/placeholder/800/400');
-      background-size: cover;
-      // background-position: center;
-      display: flex;
-      align-items: flex-end;
-      padding: 20px;
-      margin-bottom: 20px;
-  
-      h1 {
-        color: #fff;
-        font-size: 28px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-      }
-    }
-  
-    p {
-      color: #666;
-      font-size: 16px;
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
-  
-    ion-card {
-      margin-bottom: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  
-      ion-card-title {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-      }
-  
-      ion-card-content {
-        font-size: 14px;
-        color: #666;
-      }
-    }
-  
-    ion-list {
-      background: transparent;
-  
-      ion-list-header {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-      }
-  
-      ion-item {
-        --background: transparent;
-  
-        ion-icon {
-          color: #3880ff;
-        }
-  
-        ion-label {
-          font-size: 14px;
-          color: #666;
-        }
-      }
-    }
+.about-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center items vertically */
+}
+
+.about-card {
+  background-color: #e1f0fc;
+  margin-bottom: 20px;
+  width: 100%; /* Make card full width */
+  text-align: center; /* Center text in the card */
+}
+
+.about-card ion-card-title {
+  color: #84addd;
+}
+
+.about-card ion-card-content {
+  font-size: 18px;
+  color: #555;
+}
+
+.icon-container {
+  display: flex;
+  justify-content: center; /* Center icon horizontally */
+}
+
+.icon-animation {
+  font-size: 40px;
+  animation: rotate 5s infinite linear;
+}
+
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+/* Burger menu visibility for mobile */
+.burger-icon {
+  display: none;
+}
+
+.desktop-nav {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .burger-icon {
+    display: block;
   }
+
+  .desktop-nav {
+    display: none;
+  }
+}

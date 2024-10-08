@@ -33,41 +33,44 @@
   </ion-content>
 </ion-menu>
 
-<ion-content class="about-content">
-  <div class="about-container">
-    <ion-card class="about-card">
+
+<ion-content class="contact-content">
+  <div class="contact-container">
+    <ion-card class="contact-card">
       <ion-card-header>
         <div class="icon-container">
-          <ion-icon name="information-circle-outline" class="icon-animation" style="color: #84addd;"></ion-icon>
+          <ion-icon name="call-outline" class="icon-animation" style="color: #84addd;"></ion-icon>
         </div>
-        <ion-card-title>Our Story</ion-card-title>
+        <ion-card-title>Contact Information</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        Established in 2021, our Cleaning Detergent App revolutionizes the way you approach cleanliness. Our mission is to offer eco-friendly, efficient, and affordable cleaning products.
+        <p><strong>Email:</strong> support&#64;cleanapp.com</p>
+        <p><strong>Phone:</strong> +123 456 7890</p>
+        <p><strong>Address:</strong> 123 Clean Street, Eco City, Planet Earth</p>
       </ion-card-content>
     </ion-card>
 
-    <ion-card class="about-card">
+    <ion-card class="contact-card">
       <ion-card-header>
         <div class="icon-container">
-          <ion-icon name="earth-outline" class="icon-animation" style="color: #84addd;"></ion-icon>
+          <ion-icon name="chatbubble-outline" class="icon-animation" style="color: #84addd;"></ion-icon>
         </div>
-        <ion-card-title>Our Vision</ion-card-title>
+        <ion-card-title>Send Us a Message</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        We believe in sustainable living and products that contribute to a cleaner environment while delivering exceptional results.
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="about-card">
-      <ion-card-header>
-        <div class="icon-container">
-          <ion-icon name="people-outline" class="icon-animation" style="color: #84addd;"></ion-icon>
-        </div>
-        <ion-card-title>Our Team</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        Our team of scientists and engineers work tirelessly to bring you the best products to care for your environment.
+        <ion-item>
+          <ion-label position="floating">Your Name</ion-label>
+          <ion-input type="text"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Your Email</ion-label>
+          <ion-input type="email"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Your Message</ion-label>
+          <ion-textarea></ion-textarea>
+        </ion-item>
+        <ion-button expand="block" style="background-color: #84addd; color: white;">Send</ion-button>
       </ion-card-content>
     </ion-card>
   </div>

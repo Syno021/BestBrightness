@@ -90,6 +90,47 @@
     </div>     
     </div>
   </div>
+
+
+
+
+  <div class="receipt-overlay" *ngIf="receiptVisible">
+    <div class="receipt-container">
+      <h2>Receipt</h2>
+      <div class="receipt-content">
+        <h3>BEST BRIGHTNESS STORE</h3>
+        <p>123 Main St, City, Country</p>
+        <p>Tel: (555) 123-4567</p>
+        <hr>
+        <p>Date: {{ receiptData?.date }}</p>
+        <p>Cashier: {{ receiptData?.cashier }} (ID: {{ receiptData?.cashierId }})</p>
+        <hr>
+        <h4>Items:</h4>
+        <ul>
+          <li *ngFor="let item of receiptData?.items">
+            {{ item.name }} - {{ item.quantity }} x {{ item.price | currency:'R' }} = {{ item.price * item.quantity | currency:'R' }}
+          </li>
+        </ul>
+        <hr>
+        <p><strong>Subtotal:</strong> {{ receiptData?.subtotal | currency:'R' }}</p>
+        <p><strong>Tax (15%):</strong> {{ receiptData?.tax | currency:'R' }}</p>
+        <hr>
+        <p class="total"><strong>Total: {{ receiptData?.total | currency:'R' }}</strong></p>
+        
+        <!-- Conditionally display the amount paid and change for cash payments -->
+        <ng-container *ngIf="receiptData?.paymentType === 'cash'">
+          <p><strong>Amount Paid:</strong> {{ receiptData?.amountPaid | currency:'R' }}</p>
+          <p><strong>Change:</strong> {{ receiptData?.change | currency:'R' }}</p>
+        </ng-container>
+  
+        <p><strong>Payment Method:</strong> {{ receiptData?.paymentType === 'cash' ? 'Cash' : 'Credit Card' }}</p>
+        <hr>
+        <p class="thank-you">THANK YOU FOR SHOPPING WITH US!</p>
+      </div>
+      <ion-button expand="block" (click)="hideReceipt()">Close Receipt</ion-button>
+    </div>
+  </div>
+  
 </ion-content>
 
 <ion-footer>
