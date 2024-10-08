@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 interface Product {
   id: any;
@@ -40,13 +41,24 @@ export class POSPage implements OnInit {
   receiptVisible: boolean = false;
   receiptData: any = null;
   cartItems: any[] = [];
+  userId: string | null = null;
 
 
   constructor(private alertController: AlertController,
-              private http: HttpClient) {}
+              private http: HttpClient,
+              private router: Router) {}
 
   ngOnInit() {
     this.loadProducts();
+    this.getUserId();
+  }
+
+  getUserId() {
+    this.userId = sessionStorage.getItem('userId');
+    if (!this.userId) {
+      console.warn('User is not logged in');
+      // You might want to redirect to login page or show a message
+    }
   }
 
   loadProducts() {
@@ -74,7 +86,7 @@ async purchaseProducts() {
     }
 
     const orderData = {
-      user_id: 2, // Dynamically set based on logged-in user
+      user_id: this.userId, // Dynamically set based on logged-in user
       total_amount: this.getTotal(),
       order_type: "walk-in",
       status: 'Pending',
@@ -125,7 +137,11 @@ async purchaseProducts() {
   }
 }
 
-
+viewAccount() {
+  this.router.navigate(['/account']);
+  console.log('Navigating to account page');
+  // Add navigation logic here
+}
 
 
 resetCart() {
