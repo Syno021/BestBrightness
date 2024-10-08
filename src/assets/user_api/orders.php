@@ -23,6 +23,7 @@ if ($conn->connect_error) {
 }
 
 // Handle POST request for inserting a new order
+// Handle POST request for inserting a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents("php://input");
     $data = json_decode($input);
@@ -45,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Execute the statement
     if ($stmt->execute()) {
-        $order_id = $conn->insert_id;
+        $order_id = $conn->insert_id; // Capture the order_id
         
         // Insert order items
         $stmt_items = $conn->prepare("INSERT INTO ORDER_ITEMS (order_id, product_id, quantity, price_per_unit) VALUES (?, ?, ?, ?)");
@@ -63,7 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt_items->close();
         
-        echo json_encode(array("success" => true, "message" => "Order placed successfully"));
+        // Return success message with order_id
+        echo json_encode(array("success" => true, "message" => "Order placed successfully", "order_id" => $order_id));
     } else {
         error_log("Failed to place order: " . $stmt->error);
         echo json_encode(array("success" => false, "message" => "Failed to place order: " . $stmt->error));
@@ -71,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt->close();
 }
+
 // Handle GET request
 else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // Check if count=true parameter is passed
@@ -84,8 +87,36 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         } else {
             echo json_encode(['order_count' => 0]);
         }
+    } else if (isset($_GET['id'])) {
+        // View a specific order
+        $order_id = $_GET['id'];
+        $sql = "SELECT * FROM ORDERS WHERE order_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $order_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $order = $result->fetch_assoc();
+            
+            // Fetch order items
+            $items_sql = "SELECT * FROM ORDER_ITEMS WHERE order_id = ?";
+            $items_stmt = $conn->prepare($items_sql);
+            $items_stmt->bind_param("i", $order_id);
+            $items_stmt->execute();
+            $items_result = $items_stmt->get_result();
+            
+            $order['items'] = [];
+            while ($item = $items_result->fetch_assoc()) {
+                $order['items'][] = $item;
+            }
+            
+            echo json_encode(array("success" => true, "order" => $order));
+        } else {
+            echo json_encode(array("success" => false, "message" => "Order not found"));
+        }
     } else {
-        // Return all orders data
+        // Return all orders data (original functionality)
         $sql = "SELECT * FROM ORDERS"; 
         $result = $conn->query($sql);
 
@@ -98,7 +129,82 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         echo json_encode(['orderData' => $data]);
     }
-} else {
+}
+// Handle PUT request for updating an order
+else if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $input = file_get_contents("php://input");
+    $data = json_decode($input, true);
+    
+    $order_id = isset($_GET['id']) ? $_GET['id'] : null;
+    
+    if (!$order_id) {
+        die(json_encode(array("success" => false, "message" => "Order ID is required")));
+    }
+    
+    $status = isset($data['status']) ? $data['status'] : null;
+    
+    if (!$status) {
+        die(json_encode(array("success" => false, "message" => "Status is required")));
+    }
+    
+    // Validate status
+    $valid_statuses = ['Pending', 'Shipped', 'Delivered', 'Cancelled'];
+    if (!in_array($status, $valid_statuses)) {
+        die(json_encode(array("success" => false, "message" => "Invalid status")));
+    }
+    
+    $sql = "UPDATE ORDERS SET status = ? WHERE order_id = ?";
+    $stmt = $conn->prepare($sql);
+    
+    $stmt->bind_param("si", $status, $order_id);
+    
+    if ($stmt->execute()) {
+        if ($stmt->affected_rows > 0) {
+            echo json_encode(array("success" => true, "message" => "Order updated successfully"));
+        } else {
+            echo json_encode(array("success" => false, "message" => "No changes made. Order status might be the same or order might not exist."));
+        }
+    } else {
+        echo json_encode(array("success" => false, "message" => "Failed to update order: " . $stmt->error));
+    }
+    
+    $stmt->close();
+}
+// Handle DELETE request for deleting an order
+else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $order_id = isset($_GET['id']) ? $_GET['id'] : null;
+    
+    if (!$order_id) {
+        die(json_encode(array("success" => false, "message" => "Order ID is required")));
+    }
+    
+    // Start transaction
+    $conn->begin_transaction();
+    
+    try {
+        // Delete order items first
+        $delete_items_sql = "DELETE FROM ORDER_ITEMS WHERE order_id = ?";
+        $delete_items_stmt = $conn->prepare($delete_items_sql);
+        $delete_items_stmt->bind_param("i", $order_id);
+        $delete_items_stmt->execute();
+        
+        // Then delete the order
+        $delete_order_sql = "DELETE FROM ORDERS WHERE order_id = ?";
+        $delete_order_stmt = $conn->prepare($delete_order_sql);
+        $delete_order_stmt->bind_param("i", $order_id);
+        $delete_order_stmt->execute();
+        
+        // Commit transaction
+        $conn->commit();
+        
+        echo json_encode(array("success" => true, "message" => "Order deleted successfully"));
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        echo json_encode(array("success" => false, "message" => "Failed to delete order: " . $e->getMessage()));
+    }
+}
+else {
     error_log("Invalid request method: " . $_SERVER['REQUEST_METHOD']);
     echo json_encode(array("success" => false, "message" => "Invalid request method"));
 }

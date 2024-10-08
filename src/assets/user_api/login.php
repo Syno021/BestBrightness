@@ -1,6 +1,6 @@
 <?php
 header("Access-Control-Allow-Origin: http://localhost:8100");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Max-Age: 3600");
 header("Content-Type: application/json; charset=UTF-8");
@@ -25,49 +25,62 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get posted data
-$postdata = file_get_contents("php://input");
+// Handle GET request for user details
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (isset($_GET['user_id'])) {
+        $user_id = mysqli_real_escape_string($conn, $_GET['user_id']);
+        
+        $sql = "SELECT user_id, username, first_name, last_name, email, role FROM users WHERE user_id = '$user_id'";
+        $result = $conn->query($sql);
 
-if (isset($postdata) && !empty($postdata)) {
-    // Decode the JSON request body
-    $request = json_decode($postdata);
-
-    // Sanitize inputs
-    $email = mysqli_real_escape_string($conn, trim($request->email));
-    $password = trim($request->password);
-
-    // Prepare and execute the SQL query to find the user by email
-    $sql = "SELECT * FROM users WHERE email='$email'";
-    $result = $conn->query($sql);
-
-    // If a user was found with the provided email
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-
-        // Verify the password using password_verify
-        if (password_verify($password, $row['password_hash'])) {
-            // Return user details in the response
-            $response = [
-                'status' => 1,
-                'message' => 'Login successful',
-                'user_id' => $row['user_id'],    // Return the user ID
-                'email' => $row['email'],        // Return the email
-                'username' => $row['username'],  // Return the username
-                'role' => $row['role']           // Return the user's role
-            ];
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+            // Remove sensitive data before sending
+            unset($user['password_hash']);
+            echo json_encode($user);
         } else {
-            // Invalid password
-            $response = ['status' => 0, 'message' => 'Invalid password'];
+            http_response_code(404);
+            echo json_encode(['status' => 0, 'message' => 'User not found']);
         }
-    } else {
-        // User not found
-        $response = ['status' => 0, 'message' => 'User not found'];
+        exit();
     }
-
-    // Send the response as JSON
-    echo json_encode($response);
 }
 
-// Close the database connection
+// Handle POST request for login
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $postdata = file_get_contents("php://input");
+
+    if (isset($postdata) && !empty($postdata)) {
+        $request = json_decode($postdata);
+
+        $email = mysqli_real_escape_string($conn, trim($request->email));
+        $password = trim($request->password);
+
+        $sql = "SELECT * FROM users WHERE email='$email'";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+
+            if (password_verify($password, $row['password_hash'])) {
+                $response = [
+                    'status' => 1,
+                    'message' => 'Login successful',
+                    'user_id' => $row['user_id'],
+                    'email' => $row['email'],
+                    'username' => $row['username'],
+                    'role' => $row['role']
+                ];
+            } else {
+                $response = ['status' => 0, 'message' => 'Invalid password'];
+            }
+        } else {
+            $response = ['status' => 0, 'message' => 'User not found'];
+        }
+
+        echo json_encode($response);
+    }
+}
+
 $conn->close();
 ?>
