@@ -80,13 +80,18 @@ export class POSPage implements OnInit {
 
 async purchaseProducts() {
   try {
+    if (!this.userId) {
+      await this.showAlert('Error', 'User is not logged in. Please log in to complete the purchase.');
+      return;
+    }
+
     if (this.cart.length === 0) {
       await this.showAlert('Error', 'Your cart is empty. Please add items before checking out.');
       return;
     }
 
     const orderData = {
-      user_id: this.userId, // Dynamically set based on logged-in user
+      user_id: this.userId,
       total_amount: this.getTotal(),
       order_type: "walk-in",
       status: 'Pending',
@@ -110,7 +115,7 @@ async purchaseProducts() {
 
     const saleData = {
       order_id: orderId,
-      cashier_id: 14, // You'll need to implement user authentication
+      cashier_id: this.userId, // Use the userId as cashier_id
       total_amount: this.getTotal(),
       payment_method: this.paymentType,
       amount_paid: this.paymentType === 'cash' ? parseFloat(this.amountPaidInput) : this.getTotal()

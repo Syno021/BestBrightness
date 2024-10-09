@@ -97,7 +97,7 @@ SALES TABLE
 CREATE TABLE SALES (
     sale_id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT,
-    cashier_id INT,
+    user_id INT,
     total_amount DECIMAL(10, 2) NOT NULL,
     amount_paid DECIMAL(10, 2) NOT NULL,
     payment_method ENUM('cash', 'card', 'online') NOT NULL,
