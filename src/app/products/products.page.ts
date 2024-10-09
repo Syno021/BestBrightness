@@ -16,6 +16,7 @@ interface Product {
   category: string;
   image_url: string; // Allow image_url to be optional
   quantity: number;
+  stock_quantity: number;
 }
 
 @Component({
@@ -60,6 +61,7 @@ export class ProductsPage implements OnInit {
       next: (data: Product[]) => {
         this.products = data.map(product => ({ ...product, quantity: 1 }));
         this.filteredProducts = this.products;
+        this.applyFilters();
         this.extractCategories();
         console.log('Products loaded:', this.products);
       },
@@ -121,12 +123,15 @@ export class ProductsPage implements OnInit {
   applyFilters() {
     const searchTerm = this.searchbar?.value?.toLowerCase() || '';
 
-    // Filter products by search term and category
-    this.filteredProducts = this.products.filter((product) =>
-      (this.selectedCategory === 'All' || product.category === this.selectedCategory) &&
-      product.name.toLowerCase().includes(searchTerm)
-    );
+    // Filter products by search term, category, and stock
+    this.filteredProducts = this.products.filter((product) => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm);
+      const matchesCategory = this.selectedCategory === 'All' || product.category === this.selectedCategory;
+      const hasStock = product.stock_quantity > 0;
 
+      // Show product if it matches the search term (regardless of stock) or if it has stock and matches the category
+      return matchesSearch || (hasStock && matchesCategory);
+    });
     // Sort products
     switch (this.sortOption) {
       case 'name':

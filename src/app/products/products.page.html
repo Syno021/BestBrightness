@@ -76,17 +76,21 @@
             </div>
  
             <!-- Quantity controls -->
-            <div class="quantity-controls">
-              <ion-button fill="clear" (click)="decreaseQuantity(product)">
-                <ion-icon name="remove-circle-outline"></ion-icon>
-              </ion-button>
-              <span>{{ product.quantity }}</span>
-              <ion-button fill="clear" (click)="increaseQuantity(product)">
-                <ion-icon name="add-circle-outline"></ion-icon>
-              </ion-button>
+            <div *ngIf="product.stock_quantity > 0; else outOfStock">
+              <div class="quantity-controls">
+                <ion-button fill="clear" (click)="decreaseQuantity(product)">
+                  <ion-icon name="remove-circle-outline"></ion-icon>
+                </ion-button>
+                <span>{{ product.quantity }}</span>
+                <ion-button fill="clear" (click)="increaseQuantity(product)">
+                  <ion-icon name="add-circle-outline"></ion-icon>
+                </ion-button>
+              </div>
+              <ion-button expand="block" fill="clear" (click)="addToCart(product)">Add to Cart</ion-button>
             </div>
- 
-            <ion-button expand="block" fill="clear" (click)="addToCart(product)">Add to Cart</ion-button>
+            <ng-template #outOfStock>
+              <p class="out-of-stock">Out of Stock</p>
+            </ng-template>
           </ion-card-content>
         </ion-card>
       </ion-col>

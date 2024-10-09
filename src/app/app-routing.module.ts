@@ -121,6 +121,10 @@ const routes: Routes = [
     path: 'privacy-policy',
     loadChildren: () => import('./privacy-policy/privacy-policy.module').then( m => m.PrivacyPolicyPageModule)
   },
+  {
+    path: 'cashier',
+    loadChildren: () => import('./cashier/cashier.module').then( m => m.CashierPageModule)
+  },
 
   
 

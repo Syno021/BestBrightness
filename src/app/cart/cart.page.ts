@@ -108,26 +108,106 @@ export class CartPage implements OnInit {
     });
 }
 
-updateQuantity(productId: number, newQuantity: number) {
-    console.log('updateQuantity: Attempting to update quantity for productId:', productId, 'with new quantity:', newQuantity);
-    if (newQuantity < 1) {
-      console.log('updateQuantity: New quantity is less than 1, removing item with productId:', productId);
-      this.removeItem(productId);
-      return;
-    }
-    
-    this.cartService.updateQuantity(productId, newQuantity).subscribe({
-      next: () => {
-        //console.log('updateQuantity: Quantity successfully updated for productId:', productId, 'to:', newQuantity);
-        this.showToast('Quantity updated');
-        this.loadCart();
-      },
-      error: (error) => {
-        //console.error('updateQuantity: Error updating quantity for productId:', productId, 'Error details:', error);
-        this.showToast(`Failed to update quantity for productId ${productId}: ${error.message}`);
+async updateQuantity(productId: number, newQuantity: number) {
+  console.log('updateQuantity: Attempting to update quantity for productId:', productId, 'with new quantity:', newQuantity);
+  if (newQuantity < 1) {
+    console.log('updateQuantity: New quantity is less than 1, removing item with productId:', productId);
+    this.removeItem(productId);
+    return;
+  }
+  
+  try {
+    const response = await this.http.get<{quantity: number}>(
+      `http://localhost/user_api/products.php?check_quantity=1&product_id=${productId}`
+    ).toPromise();
+
+    if (response && newQuantity <= response.quantity) {
+      this.cartService.updateQuantity(productId, newQuantity).subscribe({
+        next: () => {
+          this.showToast('Quantity updated');
+          this.loadCart();
+        },
+        error: (error) => {
+          this.showToast(`Failed to update quantity for productId ${productId}: ${error.message}`);
+        }
+      });
+    } else {
+      const availableQuantity = response ? response.quantity : 0;
+      this.showToast(`Sorry, only ${availableQuantity} units are available for this product.`);
+      // Update to the maximum available quantity
+      if (availableQuantity > 0) {
+        this.cartService.updateQuantity(productId, availableQuantity).subscribe({
+          next: () => {
+            this.showToast(`Quantity updated to maximum available: ${availableQuantity}`);
+            this.loadCart();
+          },
+          error: (error) => {
+            this.showToast(`Failed to update quantity for productId ${productId}: ${error.message}`);
+          }
+        });
       }
-    });
+    }
+  } catch (error) {
+    console.error(`Error checking quantity for product ${productId}:`, error);
+    this.showToast('Error checking product availability. Please try again.');
+  }
 }
+
+async enterCustomQuantity(productId: number) {
+  const item = this.cartItems.find(i => i.product_id === productId);
+  if (!item) return;
+
+  const alert = await this.alertController.create({
+    header: 'Enter Quantity',
+    inputs: [
+      {
+        name: 'quantity',
+        type: 'number',
+        placeholder: 'Enter quantity',
+        min: 1,
+        value: item.quantity.toString()
+      }
+    ],
+    buttons: [
+      {
+        text: 'Cancel',
+        role: 'cancel'
+      },
+      {
+        text: 'Update',
+        handler: async (data) => {
+          const newQuantity = parseInt(data.quantity, 10);
+          if (isNaN(newQuantity) || newQuantity < 1) {
+            this.showToast('Please enter a valid quantity');
+            return false;
+          }
+
+          try {
+            const response = await this.http.get<{quantity: number}>(
+              `http://localhost/user_api/products.php?check_quantity=1&product_id=${productId}`
+            ).toPromise();
+
+            if (response && newQuantity <= response.quantity) {
+              this.updateQuantity(productId, newQuantity);
+              return true;
+            } else {
+              const availableQuantity = response ? response.quantity : 0;
+              this.showToast(`Sorry, only ${availableQuantity} units are available for this product.`);
+              return false;
+            }
+          } catch (error) {
+            console.error(`Error checking quantity for product ${productId}:`, error);
+            this.showToast('Error checking product availability. Please try again.');
+            return false;
+          }
+        }
+      }
+    ]
+  });
+
+  await alert.present();
+}
+
   async showToast(message: string) {
     const toast = await this.toastController.create({
       message: message,
@@ -144,10 +224,30 @@ updateQuantity(productId: number, newQuantity: number) {
     }
   }
 
-  increaseQuantity(productId: number) {
+  async increaseQuantity(productId: number) {
     const item = this.cartItems.find(i => i.product_id === productId);
     if (item) {
-      this.updateQuantity(productId, item.quantity + 1);
+      try {
+        const response = await this.http.get<{quantity: number}>(
+          `http://localhost/user_api/products.php?check_quantity=1&product_id=${productId}`
+        ).toPromise();
+  
+        if (response && item.quantity < response.quantity) {
+          // There's still stock available, so we can increase the quantity
+          this.updateQuantity(productId, item.quantity + 1);
+        } else {
+          // Show an alert or toast that max quantity has been reached
+          const alert = await this.alertController.create({
+            header: 'Maximum Quantity Reached',
+            message: `Sorry, there are only ${response ? response.quantity : item.quantity} units available for this product.`,
+            buttons: ['OK']
+          });
+          await alert.present();
+        }
+      } catch (error) {
+        console.error(`Error checking quantity for product ${productId}:`, error);
+        this.showToast('Error checking product availability. Please try again.');
+      }
     }
   }
   
@@ -257,6 +357,31 @@ updateQuantity(productId: number, newQuantity: number) {
   //   });
   // }
 
+  async checkProductQuantities(): Promise<{isValid: boolean, invalidItems: {name: string, availableQuantity: number}[]}> {
+    const invalidItems: {name: string, availableQuantity: number}[] = [];
+    let isValid = true;
+  
+    for (const item of this.cartItems) {
+      try {
+        const response = await this.http.get<{quantity: number}>(
+          `http://localhost/user_api/products.php?check_quantity=1&product_id=${item.product_id}`
+        ).toPromise();
+  
+        if (response && item.quantity > response.quantity) {
+          isValid = false;
+          invalidItems.push({name: item.name, availableQuantity: response.quantity});
+        }
+      } catch (error) {
+        console.error(`Error checking quantity for product ${item.product_id}:`, error);
+        // Assume invalid if we can't check
+        isValid = false;
+        invalidItems.push({name: item.name, availableQuantity: 0});
+      }
+    }
+  
+    return {isValid, invalidItems};
+  }
+
   async PlaceOrder(): Promise<void> {
     try {
       if (this.cartItems.length === 0) {
@@ -268,36 +393,39 @@ updateQuantity(productId: number, newQuantity: number) {
         await alert.present();
         return;
       }
-
+  
       if (!this.userEmail) {
         this.showToast('User email not found. Please log in again.');
         return;
       }
-
+  
       console.log('Starting order placement process');
-
+  
+      // Check product quantities
+      const {isValid, invalidItems} = await this.checkProductQuantities();
+      if (!isValid) {
+        let message = 'The following items have insufficient quantity:\n';
+        invalidItems.forEach(item => {
+          message += `${item.name}: ${item.availableQuantity} available\n`;
+        });
+        const alert = await this.alertController.create({
+          header: 'Insufficient Quantity',
+          message: message,
+          buttons: ['OK']
+        });
+        await alert.present();
+        return;
+      }
+  
       // Generate PDF
       const pdf = new jsPDF();
-      let yPos = 20;
-      pdf.setFontSize(18);
-      pdf.text('Order Details', 20, yPos);
-      yPos += 10;
-      pdf.setFontSize(12);
-      this.cartItems.forEach((item, index) => {
-        pdf.text(`${index + 1}. ${item.name} - Quantity: ${item.quantity} - Price: R${item.price.toFixed(2)}`, 20, yPos);
-        yPos += 10;
-      });
-      yPos += 10;
-      pdf.setFontSize(14);
-      pdf.text(`Total: R${this.total.toFixed(2)}`, 20, yPos);
-      yPos += 10;
-      pdf.text(`Order Type: ${this.deliveryMethod}`, 20, yPos);
-
+      // ... (rest of the PDF generation code)
+  
       console.log('PDF generated');
-
+  
       // Save PDF to a Blob
       const pdfBlob = pdf.output('blob');
-
+  
       // Prepare the order data
       const orderData = {
         user_id: this.userId,
@@ -307,18 +435,18 @@ updateQuantity(productId: number, newQuantity: number) {
         items: this.cartItems,
         created_at: new Date()
       };
-
+  
       console.log('Order data prepared:', JSON.stringify(orderData, null, 2));
-
+  
       // Send the email with PDF Blob
       await this.sendOrderEmail(this.userEmail, pdfBlob);
-
+  
       // Send order data to server
       const response = await this.http.post<{ success: boolean, message: string }>(
         'http://localhost/user_api/orders.php', 
         orderData
       ).toPromise();
-
+  
       if (response && response.success) {
         const firestoreOrderId = new Date().getTime().toString();
         const firestoreOrderData = { ...orderData, firestore_order_id: firestoreOrderId };

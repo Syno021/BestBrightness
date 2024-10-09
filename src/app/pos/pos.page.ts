@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AlertController } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { forkJoin, Observable } from 'rxjs';
 
 interface Product {
   id: any;
@@ -90,11 +91,19 @@ async purchaseProducts() {
       return;
     }
 
+    // Check stock availability before proceeding
+    const outOfStockItems = this.cart.filter(item => item.quantity! > item.stock_quantity);
+    if (outOfStockItems.length > 0) {
+      const itemNames = outOfStockItems.map(item => item.name).join(', ');
+      await this.showAlert('Insufficient Stock', `The following items do not have enough stock: ${itemNames}`);
+      return;
+    }
+
     const orderData = {
       user_id: this.userId,
       total_amount: this.getTotal(),
       order_type: "walk-in",
-      status: 'Pending',
+      status: 'checked-out',
       items: this.cart.map(item => ({
         product_id: item.product_id,
         quantity: item.quantity,
@@ -115,7 +124,7 @@ async purchaseProducts() {
 
     const saleData = {
       order_id: orderId,
-      cashier_id: this.userId, // Use the userId as cashier_id
+      cashier_id: this.userId,
       total_amount: this.getTotal(),
       payment_method: this.paymentType,
       amount_paid: this.paymentType === 'cash' ? parseFloat(this.amountPaidInput) : this.getTotal()
@@ -130,6 +139,25 @@ async purchaseProducts() {
       throw new Error(saleResponse?.message || 'Failed to record sale');
     }
 
+    // Update stock quantities
+    const stockUpdateRequests: Observable<any>[] = this.cart.map(item => 
+      this.http.put(`http://localhost/user_api/update_stock.php`, {
+        product_id: item.product_id,
+        quantity: item.stock_quantity - item.quantity!
+      })
+    );
+
+    forkJoin(stockUpdateRequests).subscribe({
+      next: (responses) => {
+        console.log('Stock updates completed', responses);
+        this.updateLocalStock();
+      },
+      error: (error) => {
+        console.error('Error updating stock:', error);
+        // Consider how to handle partial stock updates or rollback in case of errors
+      }
+    });
+
     await this.showAlert('Transaction Complete', `Thank you for your purchase! Order ID: ${orderId}`);
     this.completeTransaction();
 
@@ -142,8 +170,24 @@ async purchaseProducts() {
   }
 }
 
+updateLocalStock() {
+  this.cart.forEach(cartItem => {
+    const productIndex = this.allProducts.findIndex(p => p.product_id === cartItem.product_id);
+    if (productIndex !== -1) {
+      this.allProducts[productIndex].stock_quantity -= cartItem.quantity!;
+    }
+  });
+  this.products = [...this.allProducts]; // Trigger change detection
+}
+
 viewAccount() {
   this.router.navigate(['/account']);
+  console.log('Navigating to account page');
+  // Add navigation logic here
+}
+
+viewOrders() {
+  this.router.navigate(['/cashier']);
   console.log('Navigating to account page');
   // Add navigation logic here
 }
