@@ -57,6 +57,12 @@
             <ion-button (click)="editItem(item)" fill="clear" color="primary">
               <ion-icon name="eye-outline"></ion-icon> <!-- View Details icon -->
             </ion-button>
+            <ion-button (click)="updateQuantity(item, 'add')" fill="clear" color="success">
+              <ion-icon name="add-circle-outline"></ion-icon>
+            </ion-button>
+            <ion-button (click)="updateQuantity(item, 'subtract')" fill="clear" color="warning">
+              <ion-icon name="remove-circle-outline"></ion-icon>
+            </ion-button>
             <ion-button (click)="deleteItem(item.product_id)" fill="clear" color="danger">
               <ion-icon name="trash-outline"></ion-icon> <!-- Cancel Order icon -->
             </ion-button>

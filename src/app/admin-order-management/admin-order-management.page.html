@@ -75,28 +75,12 @@
     </ion-header>
     <ion-content class="ion-padding">
       <ion-list>
-        <ion-radio-group [(ngModel)]="selectedStatus">
-          <ion-item>
-            <ion-label>Pending</ion-label>
-            <ion-radio slot="end" value="Pending"></ion-radio>
-          </ion-item>
-          <ion-item>
-            <ion-label>Payment Received</ion-label>
-            <ion-radio slot="end" value="PaymentReceived"></ion-radio>
-          </ion-item>
-          <ion-item>
-            <ion-label>Shipped</ion-label>
-            <ion-radio slot="end" value="Shipped"></ion-radio>
-          </ion-item>
-          <ion-item>
-            <ion-label>Delivered</ion-label>
-            <ion-radio slot="end" value="Delivered"></ion-radio>
-          </ion-item>
-          <ion-item>
-            <ion-label>Cancelled</ion-label>
-            <ion-radio slot="end" value="Cancelled"></ion-radio>
-          </ion-item>
-        </ion-radio-group>
+        <ion-select placeholder="Update Status" [(ngModel)]="selectedStatus">
+          <ion-select-option value="pending">Status</ion-select-option>
+          <ion-select-option value="payment-received">Payment Received</ion-select-option>
+          <ion-select-option value="Shipped">Status</ion-select-option>
+          <ion-select-option value="Dilivered">Payment Received</ion-select-option>
+        </ion-select>
       </ion-list>
       <div class="ion-padding">
         <ion-button expand="block" (click)="updateOrderStatus()">Update Status</ion-button>

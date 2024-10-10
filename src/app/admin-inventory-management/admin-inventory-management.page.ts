@@ -443,6 +443,60 @@ async takeAdditionalPicture(event: Event) {
     await alert.present();
   }
 
+  async updateQuantity(product: Product, operation: 'add' | 'subtract') {
+    const alert = await this.alertController.create({
+      header: `${operation === 'add' ? 'Add to' : 'Subtract from'} Quantity`,
+      inputs: [
+        {
+          name: 'quantity',
+          type: 'number',
+          placeholder: 'Enter quantity',
+          min: 1
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Confirm',
+          handler: (data) => {
+            const quantity = parseInt(data.quantity);
+            if (isNaN(quantity) || quantity <= 0) {
+              this.presentToast('Please enter a valid quantity', 'danger');
+              return;
+            }
+  
+            this.http.put<{status: number, message: string, new_quantity: number}>(
+              `http://localhost/user_api/products.php?id=${product.product_id}`,
+              { 
+                stock_quantity: quantity,
+                quantity_operation: operation
+              }
+            ).subscribe(
+              async (response) => {
+                if (response.status === 1) {
+                  await this.presentToast('Quantity updated successfully', 'success');
+                  product.stock_quantity = response.new_quantity; // Update the local product object
+                  this.updateProductLists(); // Refresh the product lists
+                } else {
+                  await this.presentToast('Update failed: ' + response.message, 'danger');
+                }
+              },
+              async (error: HttpErrorResponse) => {
+                console.error('Error during update:', error);
+                await this.presentToast('Error during update: ' + error.message, 'danger');
+              }
+            );
+          }
+        }
+      ]
+    });
+  
+    await alert.present();
+  }
+
   async deleteItem(id: number) {
     const alert = await this.alertController.create({
       header: 'Confirm Deletion',

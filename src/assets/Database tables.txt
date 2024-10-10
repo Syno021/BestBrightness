@@ -97,7 +97,7 @@ SALES TABLE
 CREATE TABLE SALES (
     sale_id INT PRIMARY KEY AUTO_INCREMENT,
     order_id INT,
-    user_id INT,
+    cashier_id INT,
     total_amount DECIMAL(10, 2) NOT NULL,
     amount_paid DECIMAL(10, 2) NOT NULL,
     payment_method ENUM('cash', 'card', 'online') NOT NULL,
@@ -110,15 +110,16 @@ CREATE TABLE SALES (
 
 PROMOTIONS TABLE
 
-CREATE TABLE PROMOTIONS (
+CREATE TABLE IF NOT EXISTS promotions (
     promotion_id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
+    product_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
     description TEXT,
-    discount_percentage DECIMAL(5, 2) NOT NULL,
+    discount_percentage DECIMAL(5,2) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
 
