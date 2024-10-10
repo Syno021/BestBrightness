@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AlertController, ToastController, IonModal } from '@ionic/angular';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 
 @Component({
@@ -61,9 +61,20 @@ export class AdminOrderManagementPage implements OnInit {
 
   updateOrderStatus() {
     if (!this.currentOrder || !this.selectedStatus) {
+      console.error('Validation Error:', {
+        currentOrder: this.currentOrder,
+        selectedStatus: this.selectedStatus
+      });
       this.presentToast('Please select a status', 'danger');
       return;
     }
+
+    console.log('Attempting to update order:', {
+      orderId: this.currentOrder.order_id,
+      currentStatus: this.currentOrder.status,
+      newStatus: this.selectedStatus,
+      timestamp: new Date().toISOString()
+    });
 
     const updateData = {
       status: this.selectedStatus
@@ -71,19 +82,63 @@ export class AdminOrderManagementPage implements OnInit {
 
     this.http.put(`http://localhost/user_api/orders.php?id=${this.currentOrder.order_id}`, updateData)
       .pipe(
-        catchError(error => {
-          console.error('Error updating order status:', error);
-          this.presentToast('Failed to update order status', 'danger');
+        tap(response => {
+          console.log('Server Response:', {
+            response,
+            timestamp: new Date().toISOString()
+          });
+        }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('Order Update Error:', {
+            error: {
+              status: error.status,
+              statusText: error.statusText,
+              message: error.message,
+              url: error.url
+            },
+            requestData: {
+              orderId: this.currentOrder.order_id,
+              attemptedStatus: this.selectedStatus
+            },
+            serverResponse: error.error,
+            timestamp: new Date().toISOString()
+          });
+
+          let errorMessage = 'Failed to update order status';
+          if (error.error && error.error.message) {
+            errorMessage += `: ${error.error.message}`;
+          }
+          this.presentToast(errorMessage, 'danger');
           return throwError(() => error);
         })
       )
-      .subscribe((response: any) => {
-        if (response.success) {
-          this.presentToast('Order status updated successfully', 'success');
-          this.fetchOrders();
-          this.updateStatusModal.dismiss();
-        } else {
-          this.presentToast(response.message || 'Failed to update order status', 'danger');
+      .subscribe({
+        next: (response: any) => {
+          console.log('Update Success:', {
+            orderId: this.currentOrder.order_id,
+            oldStatus: this.currentOrder.status,
+            newStatus: this.selectedStatus,
+            response,
+            timestamp: new Date().toISOString()
+          });
+
+          if (response.success) {
+            this.presentToast('Order status updated successfully', 'success');
+            this.fetchOrders();
+            this.updateStatusModal.dismiss();
+          } else {
+            console.warn('Server returned success: false', {
+              response,
+              timestamp: new Date().toISOString()
+            });
+            this.presentToast(response.message || 'Failed to update order status', 'danger');
+          }
+        },
+        error: (error) => {
+          console.error('Subscription Error Handler:', {
+            error,
+            timestamp: new Date().toISOString()
+          });
         }
       });
   }

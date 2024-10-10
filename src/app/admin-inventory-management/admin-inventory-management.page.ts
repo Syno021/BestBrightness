@@ -65,6 +65,13 @@ export class AdminInventoryManagementPage implements OnInit {
   showVideoPreview = false;
   categories: Category[] = [];
 
+  searchQuery: string = '';
+  selectedFilter: string = '';
+
+  filteredUsers: any[] = [];
+
+  product: Product[] = [];
+
   constructor(
     private http: HttpClient,
     private alertController: AlertController,
@@ -108,6 +115,27 @@ export class AdminInventoryManagementPage implements OnInit {
     this.addItemModal?.dismiss();
     this.clearFields();
   }
+
+  // filterUsers() {
+  //   // Normalize the search query for easier matching
+  //   const search = this.searchQuery.toLowerCase();
+  
+  //   // Apply search and role filter
+  //   this.filteredUsers = this.product.filter(product => {
+  //     const matchesSearch =
+  //       product.first_name.toLowerCase().includes(search) ||
+  //       user.last_name.toLowerCase().includes(search) ||
+  //       user.email.toLowerCase().includes(search) ||
+  //       user.role.toLowerCase().includes(search);
+  
+  //     const matchesRole =
+  //       this.selectedFilter === '' || 
+  //       this.selectedFilter === 'all' || 
+  //       user.role.toLowerCase() === this.selectedFilter.toLowerCase();
+  
+  //     return matchesSearch && matchesRole;
+  //   });
+  // }
 
   loadProducts() {
     this.http.get<Product[]>('http://localhost/user_api/products.php')
