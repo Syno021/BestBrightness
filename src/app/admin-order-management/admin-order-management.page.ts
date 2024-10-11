@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AlertController, ToastController, IonModal } from '@ionic/angular';
 import { catchError, tap } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 @Component({
   selector: 'app-admin-order-management',
@@ -11,10 +11,16 @@ import { throwError } from 'rxjs';
 })
 export class AdminOrderManagementPage implements OnInit {
   @ViewChild('updateStatusModal') updateStatusModal!: IonModal;
+  @ViewChild('viewOrderModal') viewOrderModal!: IonModal;
+  currentOrderDetails: any = null;
   
   orderData: any[] = [];
   selectedStatus: string = '';
   currentOrder: any = null;
+  searchTerm: string = '';
+  filterType: string = '';
+  filterValue: string = '';
+  filteredOrderData: any[] = [];
 
   constructor(
     private http: HttpClient,
@@ -39,18 +45,56 @@ export class AdminOrderManagementPage implements OnInit {
       );
   }
 
-  async viewOrderDetails(order: any) {
-    const alert = await this.alertController.create({
-      header: 'Order Details',
-      message: `Order ID: ${order.order_id}<br>
-                User ID: ${order.user_id}<br>
-                Amount: ${order.total_amount}<br>
-                Status: ${order.status}<br>
-                Date: ${order.created_at}`,
-      buttons: ['OK']
-    });
+  applyFilters() {
+    this.filteredOrderData = this.orderData.filter(order => {
+      const matchesSearch = this.searchTerm ? order.order_id.toString().includes(this.searchTerm) : true;
+      let matchesFilter = true;
 
-    await alert.present();
+      if (this.filterType === 'status' && this.filterValue) {
+        matchesFilter = order.status.toLowerCase() === this.filterValue.toLowerCase();
+      } else if (this.filterType === 'date' && this.filterValue) {
+        const orderDate = new Date(order.created_at).toDateString();
+        const filterDate = new Date(this.filterValue).toDateString();
+        matchesFilter = orderDate === filterDate;
+      }
+
+      return matchesSearch && matchesFilter;
+    });
+  }
+
+  onSearchChange(event: any) {
+    this.searchTerm = event.detail.value;
+    this.applyFilters();
+  }
+
+  onFilterTypeChange(event: any) {
+    this.filterType = event.detail.value;
+    this.filterValue = ''; // Reset filter value when type changes
+    this.applyFilters();
+  }
+
+  onFilterValueChange(event: any) {
+    this.filterValue = event.detail.value;
+    this.applyFilters();
+  }
+
+  async viewOrderDetails(order: any) {
+    this.http.get(`http://localhost/user_api/orders.php?id=${order.order_id}`)
+      .pipe(
+        catchError(error => {
+          console.error('Error fetching order details:', error);
+          this.presentToast('Failed to fetch order details', 'danger');
+          return throwError(() => error);
+        })
+      )
+      .subscribe((response: any) => {
+        if (response.success) {
+          this.currentOrderDetails = response.order;
+          this.viewOrderModal.present();
+        } else {
+          this.presentToast(response.message || 'Failed to fetch order details', 'danger');
+        }
+      });
   }
 
   async openUpdateStatusModal(order: any) {
@@ -76,71 +120,76 @@ export class AdminOrderManagementPage implements OnInit {
       timestamp: new Date().toISOString()
     });
 
-    const updateData = {
-      status: this.selectedStatus
-    };
-
-    this.http.put(`http://localhost/user_api/orders.php?id=${this.currentOrder.order_id}`, updateData)
+    this.http.get<any>(`http://localhost/user_api/orders.php?id=${this.currentOrder.order_id}`)
       .pipe(
-        tap(response => {
-          console.log('Server Response:', {
-            response,
-            timestamp: new Date().toISOString()
-          });
-        }),
-        catchError((error: HttpErrorResponse) => {
-          console.error('Order Update Error:', {
-            error: {
-              status: error.status,
-              statusText: error.statusText,
-              message: error.message,
-              url: error.url
-            },
-            requestData: {
-              orderId: this.currentOrder.order_id,
-              attemptedStatus: this.selectedStatus
-            },
-            serverResponse: error.error,
-            timestamp: new Date().toISOString()
-          });
-
-          let errorMessage = 'Failed to update order status';
-          if (error.error && error.error.message) {
-            errorMessage += `: ${error.error.message}`;
-          }
-          this.presentToast(errorMessage, 'danger');
-          return throwError(() => error);
-        })
+        catchError(this.handleError<any>('fetchOrderDetails'))
       )
-      .subscribe({
-        next: (response: any) => {
-          console.log('Update Success:', {
-            orderId: this.currentOrder.order_id,
-            oldStatus: this.currentOrder.status,
-            newStatus: this.selectedStatus,
-            response,
-            timestamp: new Date().toISOString()
-          });
+      .subscribe((orderDetails: any) => {
+        if (orderDetails && orderDetails.success) {
+          const quantityChanges = this.calculateQuantityChanges(orderDetails.order.items, this.currentOrder.status, this.selectedStatus);
+          
+          const updateData = {
+            status: this.selectedStatus,
+            quantityChanges: quantityChanges
+          };
 
-          if (response.success) {
-            this.presentToast('Order status updated successfully', 'success');
-            this.fetchOrders();
-            this.updateStatusModal.dismiss();
-          } else {
-            console.warn('Server returned success: false', {
-              response,
-              timestamp: new Date().toISOString()
+          this.http.put(`http://localhost/user_api/orders.php?id=${this.currentOrder.order_id}`, updateData)
+            .pipe(
+              tap(response => {
+                console.log('Server Response:', {
+                  response,
+                  timestamp: new Date().toISOString()
+                });
+              }),
+              catchError(this.handleError<any>('updateOrderStatus'))
+            )
+            .subscribe({
+              next: (response: any) => {
+                if (response && response.success) {
+                  this.presentToast('Order status updated successfully', 'success');
+                  this.fetchOrders();
+                  this.updateStatusModal.dismiss();
+                } else {
+                  this.presentToast(response && response.message || 'Failed to update order status', 'danger');
+                }
+              }
             });
-            this.presentToast(response.message || 'Failed to update order status', 'danger');
-          }
-        },
-        error: (error) => {
-          console.error('Subscription Error Handler:', {
-            error,
-            timestamp: new Date().toISOString()
-          });
+        } else {
+          this.presentToast('Failed to fetch order details', 'danger');
         }
       });
+  }
+
+  private handleError<T>(operation = 'operation', result?: T) {
+    return (error: any): Observable<T> => {
+      console.error(`${operation} failed:`, error);
+
+      // If the error is an HttpErrorResponse and has error.error.text, log it
+      if (error instanceof HttpErrorResponse && error.error && error.error.text) {
+        console.error('Server error message:', error.error.text);
+      }
+
+      // Let the app keep running by returning an empty result.
+      this.presentToast(`${operation} failed. Please try again.`, 'danger');
+      return of(result as T);
+    };
+  }
+
+  private calculateQuantityChanges(orderItems: any[], currentStatus: string, newStatus: string): any[] {
+    const changes = [];
+    const shouldSubtract = newStatus === 'order-processed';
+    const shouldRestore = (currentStatus === 'order-processed') && (newStatus === 'pending' || newStatus === 'payment-received');
+
+    if (shouldSubtract || shouldRestore) {
+      for (const item of orderItems) {
+        changes.push({
+          product_id: item.product_id,
+          quantity: shouldSubtract ? -item.quantity : item.quantity
+        });
+      }
+    }
+
+    return changes;
   }
 
   async deleteOrder(order: any) {
