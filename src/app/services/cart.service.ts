@@ -203,6 +203,23 @@ export class CartService {
     );
   }
 
+  clearAllItems(): Observable<any> {
+    const userId = this.getUserId();
+    if (!userId) {
+      return throwError(() => new Error('User not logged in'));
+    }
+
+    const params = new HttpParams().set('user_id', userId);
+
+    return this.http.delete(this.apiUrl, { params }).pipe(
+      tap(() => {
+        this.cartItems = [];
+        this.updateCart();
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private updateCart() {
     this.cartItemsSubject.next(this.cartItems);
     localStorage.setItem('cart', JSON.stringify(this.cartItems));

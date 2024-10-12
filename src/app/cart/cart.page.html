@@ -5,6 +5,7 @@
         <tr>
           <th>Product</th>
           <th>Quantity</th>
+          <th>Price</th>
           <th>Subtotal</th>
         </tr>
       </thead>
@@ -14,7 +15,7 @@
             <ion-img [src]="item.image_url"></ion-img>
             <div>
               <h3>{{ item.name }}</h3>
-              <p>Price: R{{ item.price }}</p>
+              <p *ngIf="item.hasPromotion" class="promotion-tag">{{ item.promotionName }}</p>
               <ion-button fill="clear" (click)="removeItem(item.product_id)">Remove</ion-button>
             </div>
           </td>
@@ -28,7 +29,24 @@
               </ion-button>
             </div>
           </td>
-          <td>R{{ (item.price * item.quantity) }}</td>
+          <td>
+            <ng-container *ngIf="item.hasPromotion">
+              <span class="original-price">R{{ item.price }}</span>
+              <span class="discounted-price">R{{ item.discountedPrice }}</span>
+            </ng-container>
+            <ng-container *ngIf="!item.hasPromotion">
+              R{{ item.price }}
+            </ng-container>
+          </td>
+          <td>
+            <ng-container *ngIf="item.hasPromotion">
+              <span class="original-price">R{{ (item.price * item.quantity) }}</span>
+              <span class="discounted-price">R{{ (item.discountedPrice * item.quantity) }}</span>
+            </ng-container>
+            <ng-container *ngIf="!item.hasPromotion">
+              R{{ (item.price * item.quantity) }}
+            </ng-container>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -41,16 +59,24 @@
     <div class="cart-total">
       <table>
         <tr>
-          <td>Subtotal</td>
-          <td>R{{ subtotal.toFixed(2) }}</td>
+          <td>Original Subtotal</td>
+          <td>R{{ subtotal }}</td>
+        </tr>
+        <tr>
+          <td>Discounted Subtotal</td>
+          <td>R{{ discountedSubtotal }}</td>
         </tr>
         <tr>
           <td>Tax</td>
-          <td>R{{ tax.toFixed(2) }}</td>
+          <td>R{{ tax }}</td>
         </tr>
         <tr>
-          <td><strong>Total</strong></td>
-          <td><strong>R{{ total.toFixed(2) }}</strong></td>
+          <td><strong>Original Total</strong></td>
+          <td><strong>R{{ total }}</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Discounted Total</strong></td>
+          <td><strong>R{{ discountedTotal }}</strong></td>
         </tr>
       </table>
     </div>
@@ -90,15 +116,15 @@
     </ion-item-divider>
     <ion-item>
       <ion-label>Subtotal</ion-label>
-      <ion-note slot="end">R{{ subtotal.toFixed(2) }}</ion-note>
+      <ion-note slot="end">R{{ subtotal }}</ion-note>
     </ion-item>
     <ion-item>
       <ion-label>Tax</ion-label>
-      <ion-note slot="end">R{{ tax.toFixed(2) }}</ion-note>
+      <ion-note slot="end">R{{ tax }}</ion-note>
     </ion-item>
     <ion-item>
       <ion-label>Total</ion-label>
-      <ion-note slot="end"><strong>R{{ total.toFixed(2) }}</strong></ion-note>
+      <ion-note slot="end"><strong>R{{ total}}</strong></ion-note>
     </ion-item>
 
     <ion-button expand="block" (click)="PlaceOrder()">Place Order</ion-button>

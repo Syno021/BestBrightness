@@ -29,7 +29,13 @@ interface Product {
   price: number;
   image_url: string;
   additional_images?: string[];
+  sales_count?: number;         // Number of units sold
+  last_sale_date?: Date;        // Date of last sale
+  movement_rate?: number;       // Calculated movement rate
+  movement_category?: 'fast' | 'medium' | 'slow'; // Classification
 }
+
+
 
 interface Category {
   category_id: number;
@@ -55,6 +61,10 @@ export class AdminInventoryManagementPage implements OnInit {
     image_url: '',
     additional_images: []
   };
+
+  fastMovingThreshold: number = 100; // Items sold per month threshold for fast-moving
+  slowMovingThreshold: number = 20;  // Items sold per month threshold for slow-moving
+  selectedMovementView: 'fast' | 'slow' = 'fast';
   
   products: Product[] = [];
   fastMoving: Product[] = [];
@@ -72,6 +82,10 @@ export class AdminInventoryManagementPage implements OnInit {
 
   product: Product[] = [];
 
+  filteredProducts: Product[] = [];
+  selectedCategory: string = '';
+  selectedStatus: string = '';
+  selectedStockLevel: string = '';
   constructor(
     private http: HttpClient,
     private alertController: AlertController,
@@ -86,11 +100,84 @@ export class AdminInventoryManagementPage implements OnInit {
   ngOnInit() {
     this.loadProducts();
     this.loadCategories();
+    this.calculateMovementRates();
   }
 
   ngAfterViewInit() {
     // Ensure the video element is available
     console.log('Video element:', this.videoElement);
+  }
+
+  calculateMovementRates() {
+    const currentDate = new Date();
+    const thirtyDaysAgo = new Date(currentDate.getTime() - (30 * 24 * 60 * 60 * 1000));
+
+    this.products.forEach(product => {
+      // Calculate monthly sales rate
+      if (product.sales_count && product.last_sale_date) {
+        const lastSaleDate = new Date(product.last_sale_date);
+        const daysSinceLastSale = Math.max(1, Math.floor((currentDate.getTime() - lastSaleDate.getTime()) / (1000 * 60 * 60 * 24)));
+        product.movement_rate = (product.sales_count / daysSinceLastSale) * 30; // Monthly rate
+
+        // Classify movement
+        if (product.movement_rate >= this.fastMovingThreshold) {
+          product.movement_category = 'fast';
+        } else if (product.movement_rate <= this.slowMovingThreshold) {
+          product.movement_category = 'slow';
+        } else {
+          product.movement_category = 'medium';
+        }
+      } else {
+        product.movement_rate = 0;
+        product.movement_category = 'slow';
+      }
+    });
+
+    // Update fast and slow moving lists
+    this.updateMovementLists();
+  }
+
+  // Update the movement lists
+  updateMovementLists() {
+    this.fastMoving = this.products
+      .filter(p => p.movement_category === 'fast')
+      .sort((a, b) => (b.movement_rate || 0) - (a.movement_rate || 0))
+      .slice(0, 10);
+
+    this.slowMoving = this.products
+      .filter(p => p.movement_category === 'slow')
+      .sort((a, b) => (a.movement_rate || 0) - (b.movement_rate || 0))
+      .slice(0, 10);
+  }
+
+  // Toggle between fast and slow moving views
+  toggleMovementView(event: any) {
+    const value = event.detail.value;
+    if (value === 'fast' || value === 'slow') {
+      this.selectedMovementView = value;
+    }
+  }
+
+  // Alternative method with type safety
+  handleMovementViewChange(event: CustomEvent) {
+    const value = event.detail.value;
+    if (value === 'fast' || value === 'slow') {
+      this.selectedMovementView = value;
+    }
+  }
+
+  // Get movement status class
+  getMovementStatusClass(rate: number | undefined): string {
+    if (!rate) return 'movement-none';
+    if (rate >= this.fastMovingThreshold) return 'movement-fast';
+    if (rate <= this.slowMovingThreshold) return 'movement-slow';
+    return 'movement-medium';
+  }
+
+  // Format movement rate for display
+  formatMovementRate(rate: number | undefined): string {
+    if (!rate) return '0';
+    return rate.toFixed(1) + ' units/month';
   }
 
   async openCategoryManagementModal() {
@@ -116,26 +203,58 @@ export class AdminInventoryManagementPage implements OnInit {
     this.clearFields();
   }
 
-  // filterUsers() {
-  //   // Normalize the search query for easier matching
-  //   const search = this.searchQuery.toLowerCase();
-  
-  //   // Apply search and role filter
-  //   this.filteredUsers = this.product.filter(product => {
-  //     const matchesSearch =
-  //       product.first_name.toLowerCase().includes(search) ||
-  //       user.last_name.toLowerCase().includes(search) ||
-  //       user.email.toLowerCase().includes(search) ||
-  //       user.role.toLowerCase().includes(search);
-  
-  //     const matchesRole =
-  //       this.selectedFilter === '' || 
-  //       this.selectedFilter === 'all' || 
-  //       user.role.toLowerCase() === this.selectedFilter.toLowerCase();
-  
-  //     return matchesSearch && matchesRole;
-  //   });
-  // }
+  applyFilters() {
+    this.filteredProducts = this.products.filter(product => {
+      const matchesSearch = this.searchQuery ? 
+        product.name.toLowerCase().includes(this.searchQuery.toLowerCase()) : true;
+
+      const matchesCategory = this.selectedCategory ? 
+        product.category === this.selectedCategory : true;
+
+      const matchesStatus = this.selectedStatus ? 
+        (this.selectedStatus === 'available' ? 
+          product.stock_quantity > 0 : 
+          product.stock_quantity === 0) : true;
+
+      const matchesStockLevel = this.getStockLevelMatch(product.stock_quantity);
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesStockLevel;
+    });
+  }
+
+  getStockLevelMatch(stockQuantity: number): boolean {
+    switch (this.selectedStockLevel) {
+      case 'low':
+        return stockQuantity < 75;
+      case 'medium':
+        return stockQuantity >= 75 && stockQuantity < 150;
+      case 'high':
+        return stockQuantity >= 150;
+      default:
+        return true;
+    }
+  }
+
+  // Event handlers for filters
+  onSearchChange(event: any) {
+    this.searchQuery = event.detail.value;
+    this.applyFilters();
+  }
+
+  onCategoryChange(event: any) {
+    this.selectedCategory = event.detail.value;
+    this.applyFilters();
+  }
+
+  onStatusChange(event: any) {
+    this.selectedStatus = event.detail.value;
+    this.applyFilters();
+  }
+
+  onStockLevelChange(event: any) {
+    this.selectedStockLevel = event.detail.value;
+    this.applyFilters();
+  }
 
   loadProducts() {
     this.http.get<Product[]>('http://localhost/user_api/products.php')
@@ -172,6 +291,12 @@ export class AdminInventoryManagementPage implements OnInit {
   }
 
   async submitForm() {
+
+    if (!this.newItem.name || !this.newItem.category || !this.newItem.stock_quantity || 
+      !this.newItem.barcode || !this.newItem.price) {
+    await this.presentToast('Please fill in all required fields', 'danger');
+    return;
+  }
     const loading = await this.loadingController.create({
       message: 'inserting products...',
     });

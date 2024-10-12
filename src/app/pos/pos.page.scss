@@ -3,6 +3,27 @@
   height: 100vh;
 }
 
+.strikethrough {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.discounted-price {
+  color: #e74c3c;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.promotion-tag {
+  background-color: #3498db;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  margin-top: 5px;
+  display: inline-block;
+}
+
 .products-section {
   flex: 3;
   display: flex;
