@@ -125,6 +125,10 @@ const routes: Routes = [
     path: 'cashier',
     loadChildren: () => import('./cashier/cashier.module').then( m => m.CashierPageModule)
   },
+  {
+    path: 'forgot-password',
+    loadChildren: () => import('./forgot-password/forgot-password.module').then( m => m.ForgotPasswordPageModule)
+  },
 
   
 
