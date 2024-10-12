@@ -3,6 +3,7 @@ import { AlertController } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { forkJoin, Observable } from 'rxjs';
+import { PromotionService } from '../services/promotion.service'; 
 
 interface Product {
   id: any;
@@ -19,6 +20,9 @@ interface Product {
   created_at: string;
   updated_at: string;
   quantity?: number;
+  discountedPrice?: number; // Add this property
+  hasPromotion?: boolean; // Add this property
+  promotionName?: string; // Add this property
 }
 
 
@@ -43,15 +47,19 @@ export class POSPage implements OnInit {
   receiptData: any = null;
   cartItems: any[] = [];
   userId: string | null = null;
+  promotions: any[] = [];
 
 
   constructor(private alertController: AlertController,
               private http: HttpClient,
-              private router: Router) {}
+              private router: Router,
+              private promotionService: PromotionService,
+            ) {}
 
   ngOnInit() {
     this.loadProducts();
     this.getUserId();
+    this.loadPromotions();
   }
 
   getUserId() {
@@ -67,17 +75,69 @@ export class POSPage implements OnInit {
       next: (data: Product[]) => {
         this.allProducts = data.map(product => ({
           ...product,
-          price: +product.price || 0  // Convert price to a number or default to 0
+          price: +product.price || 0
         }));
         this.products = this.allProducts;
         this.extractCategories();
+        this.applyPromotions();
         console.log('Products loaded:', this.products);
       },
       error: (error: HttpErrorResponse) => {
         console.error('Error loading products:', error);
       }
     });
-}
+  }
+
+  loadPromotions() {
+    this.promotionService.getPromotions().subscribe({
+      next: (promotions) => {
+        this.promotions = promotions.map(promo => ({
+          ...promo,
+          discount_percentage: this.ensureValidNumber(promo.discount_percentage)
+        }));
+        this.applyPromotions();
+      },
+      error: (error) => {
+        console.error('Error loading promotions:', error);
+      }
+    });
+  }
+
+  applyPromotions() {
+    this.allProducts.forEach(product => {
+      const promotion = this.promotions.find(p => p.product_id === product.product_id);
+      if (promotion) {
+        const discountAmount = product.price * (promotion.discount_percentage / 100);
+        product.discountedPrice = this.roundToTwo(product.price - discountAmount);
+        product.hasPromotion = true;
+        product.promotionName = promotion.name;
+      } else {
+        product.discountedPrice = product.price;
+        product.hasPromotion = false;
+      }
+    });
+    this.updateCartWithPromotions();
+  }
+
+  updateCartWithPromotions() {
+    this.cart.forEach(item => {
+      const product = this.allProducts.find(p => p.product_id === item.product_id);
+      if (product) {
+        item.discountedPrice = product.discountedPrice;
+        item.hasPromotion = product.hasPromotion;
+        item.promotionName = product.promotionName;
+      }
+    });
+  }
+
+  ensureValidNumber(value: any): number {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  }
+
+  roundToTwo(num: number): number {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+  }
 
 async purchaseProducts() {
   try {
@@ -102,12 +162,14 @@ async purchaseProducts() {
     const orderData = {
       user_id: this.userId,
       total_amount: this.getTotal(),
+      discounted_amount: this.getSubtotal(),
       order_type: "walk-in",
       status: 'checked-out',
       items: this.cart.map(item => ({
         product_id: item.product_id,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        discounted_price: item.discountedPrice
       }))
     };
 
@@ -270,15 +332,17 @@ addToCart(product: Product) {
   }
 
   getSubtotal() {
-    return this.cart.reduce((total, item) => total + (item.price * item.quantity!), 0);
+    return this.roundToTwo(
+      this.cart.reduce((sum, item) => sum + (item.discountedPrice! * item.quantity!), 0)
+    );
   }
 
   getTax() {
-    return this.getSubtotal() * 0.15; // Assuming 15% VAT
+    return this.roundToTwo(this.getSubtotal() * 0.15); // Assuming 15% VAT
   }
 
   getTotal() {
-    return this.getSubtotal() + this.getTax();
+    return this.roundToTwo(this.getSubtotal() + this.getTax());
   }
 
   async checkout() {

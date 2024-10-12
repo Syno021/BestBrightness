@@ -126,11 +126,9 @@ export class AdminOrderManagementPage implements OnInit {
       )
       .subscribe((orderDetails: any) => {
         if (orderDetails && orderDetails.success) {
-          const quantityChanges = this.calculateQuantityChanges(orderDetails.order.items, this.currentOrder.status, this.selectedStatus);
-          
           const updateData = {
             status: this.selectedStatus,
-            quantityChanges: quantityChanges
+            previousStatus: this.currentOrder.status
           };
 
           this.http.put(`http://localhost/user_api/orders.php?id=${this.currentOrder.order_id}`, updateData)
@@ -158,21 +156,6 @@ export class AdminOrderManagementPage implements OnInit {
           this.presentToast('Failed to fetch order details', 'danger');
         }
       });
-  }
-
-  private handleError<T>(operation = 'operation', result?: T) {
-    return (error: any): Observable<T> => {
-      console.error(`${operation} failed:`, error);
-
-      // If the error is an HttpErrorResponse and has error.error.text, log it
-      if (error instanceof HttpErrorResponse && error.error && error.error.text) {
-        console.error('Server error message:', error.error.text);
-      }
-
-      // Let the app keep running by returning an empty result.
-      this.presentToast(`${operation} failed. Please try again.`, 'danger');
-      return of(result as T);
-    };
   }
 
   private calculateQuantityChanges(orderItems: any[], currentStatus: string, newStatus: string): any[] {
@@ -236,5 +219,13 @@ export class AdminOrderManagementPage implements OnInit {
       position: 'bottom'
     });
     toast.present();
+  }
+
+  private handleError<T>(operation = 'operation', result?: T) {
+    return (error: any): Observable<T> => {
+      console.error(`${operation} failed:`, error);
+      this.presentToast(`${operation} failed. Please try again.`, 'danger');
+      return of(result as T);
+    };
   }
 }

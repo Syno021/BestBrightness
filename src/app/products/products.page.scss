@@ -2,6 +2,78 @@ ion-content {
   --background: #f4f5f8;
 }
 
+.promo-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.promo-card img {
+  object-fit: cover;
+  height: 200px;
+}
+
+ion-card-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.product-description {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  margin-bottom: 10px;
+}
+
+.price-rating {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.price {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.discounted-price {
+  color: #e74c3c;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+ion-badge {
+  margin-right: 5px;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.quantity-controls ion-button {
+  --padding-start: 5px;
+  --padding-end: 5px;
+}
+
+.out-of-stock {
+  color: #e74c3c;
+  font-weight: bold;
+  text-align: center;
+}
+
 
 .promo-card {
   margin-bottom: 16px;

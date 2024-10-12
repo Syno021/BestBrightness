@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { ToastController, IonSearchbar } from '@ionic/angular';
 import { CartService } from '../services/cart.service';
+import { PromotionService } from '../services/promotion.service'; 
 import { NavController } from '@ionic/angular';
 
 interface Product {
@@ -17,6 +18,16 @@ interface Product {
   image_url: string; // Allow image_url to be optional
   quantity: number;
   stock_quantity: number;
+  hasPromotion?: boolean;
+  promotionName?: string;
+  discountedPrice?: number;
+}
+
+interface Promotion {
+  promotion_id: number;
+  product_id: number;
+  name: string;
+  discount_percentage: number;
 }
 
 @Component({
@@ -33,17 +44,20 @@ export class ProductsPage implements OnInit {
   selectedCategory: string = 'All';
   sortOption: string = 'name';
   userId: string | null = null;
+  promotions: Promotion[] = [];
 
   constructor(
     private http: HttpClient,
     private cartService: CartService,
     private navCtrl: NavController,
     private toastController: ToastController,
+    private promotionService: PromotionService,
   ) {}
 
   ngOnInit() {
     this.loadProducts();
     this.getUserId();
+    this.loadPromotions();
   }
 
   getUserId() {
@@ -70,6 +84,48 @@ export class ProductsPage implements OnInit {
       }
     });
   }
+
+  loadPromotions() {
+    this.promotionService.getPromotions().subscribe({
+      next: (promotions: Promotion[]) => {
+        this.promotions = promotions.map(promo => ({
+          ...promo,
+          discount_percentage: this.ensureValidNumber(promo.discount_percentage)
+        }));
+        this.applyPromotions();
+      },
+      error: (error) => {
+        console.error('Error loading promotions:', error);
+      }
+    });
+  }
+
+  applyPromotions() {
+    this.products.forEach(product => {
+      const promotion = this.promotions.find(p => p.product_id === product.product_id);
+      if (promotion) {
+        const discountAmount = product.price * (promotion.discount_percentage / 100);
+        product.discountedPrice = this.roundToTwo(product.price - discountAmount);
+        product.hasPromotion = true;
+        product.promotionName = promotion.name;
+      } else {
+        product.discountedPrice = product.price;
+        product.hasPromotion = false;
+        product.promotionName = undefined;
+      }
+    });
+    this.applyFilters(); // Re-apply filters to update displayed data
+  }
+
+  ensureValidNumber(value: any): number {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  }
+
+  roundToTwo(num: number): number {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+  }
+
 
   // Extract categories from products for the category filter
   extractCategories() {

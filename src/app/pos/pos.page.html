@@ -32,10 +32,14 @@
       </ion-segment>
       <div class="products-grid">
         <div class="product-card" *ngFor="let product of products" (click)="addToCart(product)">
-          <!-- <img [src]="product.image" [alt]="product.name"> -->
+          <img [src]="product.image_url" [alt]="product.name">
           <div class="product-info">
             <h3>{{ product.name }}</h3>
-            <p>R{{ product.price.toFixed(2) }}</p>
+            <p>
+              <span [class.strikethrough]="product.hasPromotion">R{{ product.price.toFixed(2) }}</span>
+              <span *ngIf="product.hasPromotion" class="discounted-price">R{{ product.discountedPrice!.toFixed(2) }}</span>
+            </p>
+            <span *ngIf="product.hasPromotion" class="promotion-tag">{{ product.promotionName }}</span>
           </div>
         </div>
       </div>

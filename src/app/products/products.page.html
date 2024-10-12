@@ -12,12 +12,6 @@
       <ion-button (click)="navigateToCart()">
         <ion-icon name="cart-outline"></ion-icon>
       </ion-button>
-      <!-- <ion-button>
-        <ion-icon name="chatbubbles-outline"></ion-icon>
-      </ion-button> -->
-      <!-- <ion-button>
-        <ion-icon name="notifications-outline"></ion-icon>
-      </ion-button> -->
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar>
@@ -57,12 +51,19 @@
           <ion-card-header>
             <ion-card-subtitle>
               <ion-badge color="danger" *ngIf="product.isSale">SALE</ion-badge>
+              <ion-badge color="primary" *ngIf="product.hasPromotion">{{ product.promotionName }}</ion-badge>
             </ion-card-subtitle>
             <ion-card-title>{{ product.name }}</ion-card-title>
           </ion-card-header>
           <ion-card-content>
+            <p class="product-description">{{ product.description }}</p>
             <div class="price-rating">
-              <span class="price">R{{ product.price }}</span>
+              <span class="price" [class.strikethrough]="product.hasPromotion">
+                R{{ product.price | number:'1.2-2' }}
+              </span>
+              <span *ngIf="product.hasPromotion" class="discounted-price">
+                R{{ product.discountedPrice | number:'1.2-2' }}
+              </span>
  
               <!-- Star Ratings -->
               <ion-icon
