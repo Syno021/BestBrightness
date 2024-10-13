@@ -100,14 +100,26 @@
       <ion-item-divider>
         <ion-label>Shipping Information</ion-label>
       </ion-item-divider>
-      <ion-item>
-        <ion-label position="stacked">Select Saved Address</ion-label>
-        <ion-select [(ngModel)]="selectedAddress">
-          <ion-select-option *ngFor="let address of savedAddresses" [value]="address">
-            {{ address.street }}, {{ address.city }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
+      
+      <ion-card *ngFor="let address of savedAddresses">
+        <ion-card-content>
+          <ion-row>
+            <ion-col size="10">
+              <p>{{ address.address_line1 }}</p>
+              <p *ngIf="address.address_line2">{{ address.address_line2 }}</p>
+              <p>{{ address.city }}, {{ address.province }}</p>
+              <p>{{ address.postal_code }}</p>
+              <p>{{ address.country }}</p>
+            </ion-col>
+            <ion-col size="2">
+              <ion-button fill="clear" (click)="deleteAddress(address.id)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    
       <ion-button expand="block" (click)="addNewAddress()">Add New Address</ion-button>
     </div>
 

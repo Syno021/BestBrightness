@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface CartItem {
@@ -209,12 +209,13 @@ export class CartService {
       return throwError(() => new Error('User not logged in'));
     }
 
-    const params = new HttpParams().set('user_id', userId);
+    const params = new HttpParams()
+      .set('user_id', userId)
+      .set('clear_all', 'true');  // Add a parameter to indicate clearing all items
 
     return this.http.delete(this.apiUrl, { params }).pipe(
       tap(() => {
-        this.cartItems = [];
-        this.updateCart();
+        this.cartItemsSubject.next([]);
       }),
       catchError(this.handleError)
     );
@@ -222,7 +223,7 @@ export class CartService {
 
   private updateCart() {
     this.cartItemsSubject.next(this.cartItems);
-    localStorage.setItem('cart', JSON.stringify(this.cartItems));
+    localStorage.removeItem('cart'); // Remove cart from local storage
   }
 
   private handleError(error: HttpErrorResponse) {

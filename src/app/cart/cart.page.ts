@@ -6,7 +6,7 @@ import { AlertController,ToastController, AlertOptions } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { Subscription } from 'rxjs';
+import { catchError, map, Observable, of, Subscription, throwError } from 'rxjs';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import jsPDF from 'jspdf';
@@ -52,6 +52,7 @@ export class CartPage implements OnInit {
     this.loadPromotions();
     this.getUserId();
     this.getUserEmail();
+    this.loadSavedAddresses();
   }
 
   getUserId() {
@@ -309,88 +310,172 @@ async enterCustomQuantity(productId: number) {
       }
     }
   }
+
+  loadSavedAddresses() {
+  if (this.userId) {
+    this.http.get<any[]>(`http://localhost/user_api/address.php?user_id=${this.userId}`)
+      .pipe(
+        catchError(error => {
+          console.error('Error loading addresses:', error);
+          this.showToast('Failed to load saved addresses');
+          return of([]);
+        })
+      )
+      .subscribe(
+        (addresses) => {
+          console.log('Addresses received:', addresses);
+          this.savedAddresses = addresses;
+        }
+      );
+  }
+}
   
-  async addNewAddress() {
-    
-    const alert = await this.alertController.create({
-      header: 'Add New Address',
-      cssClass: 'address-alert',
-      inputs: [
-        {
-          name: 'address_line1',
-          type: 'text',
-          placeholder: 'Address Line 1 *',
-           cssClass: 'address-input'
-        },
-        {
-          name: 'address_line2',
-          type: 'text',
-          placeholder: 'Address Line 2',
-          cssClass: 'address-input'
-        },
-        {
-          name: 'city',
-          type: 'text',
-          placeholder: 'City *',
-          cssClass: 'address-input'
-        },
-        {
-          name: 'province',
-          type: 'text',
-          placeholder: 'Province',
-          cssClass: 'address-input'
-        },
-        {
-          name: 'postal_code',
-          type: 'text',
-          placeholder: 'Postal Code',
-          cssClass: 'address-input'
-        },
-        {
-          name: 'country',
-          type: 'text',
-          placeholder: 'Country *',
-          cssClass: 'address-input'
+async addNewAddress() {
+  const alert = await this.alertController.create({
+    header: 'Add New Address',
+    cssClass: 'address-alert',
+    inputs: [
+      {
+        name: 'address_line1',
+        type: 'text',
+        placeholder: 'Address Line 1 *',
+        cssClass: 'address-input'
+      },
+      {
+        name: 'address_line2',
+        type: 'text',
+        placeholder: 'Address Line 2',
+        cssClass: 'address-input'
+      },
+      {
+        name: 'city',
+        type: 'text',
+        placeholder: 'City *',
+        cssClass: 'address-input'
+      },
+      {
+        name: 'province',
+        type: 'text',
+        placeholder: 'Province',
+        cssClass: 'address-input'
+      },
+      {
+        name: 'postal_code',
+        type: 'text',
+        placeholder: 'Postal Code',
+        cssClass: 'address-input'
+      },
+      {
+        name: 'country',
+        type: 'text',
+        placeholder: 'Country *',
+        cssClass: 'address-input'
+      }
+    ],
+    buttons: [
+      {
+        text: 'Cancel',
+        role: 'cancel',
+        handler: () => {
+          return true; // Dismiss the alert
         }
-      ],
-
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel',
-          handler: () => {
-            return true; // Dismiss the alert
+      },
+      {
+        text: 'Add',
+        handler: (data) => {
+          if (!data.address_line1 || !data.city || !data.country) {
+            this.showErrorToast('Please fill in all required fields.');
+            return false;
           }
-        },
-        {
-          text: 'Add',
-          handler: (data) => {
-            if (!data.address_line1 || !data.city || !data.country) {
-              // Show error message for required fields
-              this.showErrorToast('Please fill in all required fields.');
-              return false;
-            }
 
-            const newAddress = {
-              address_line1: data.address_line1,
-              address_line2: data.address_line2,
-              city: data.city,
-              province: data.province,
-              postal_code: data.postal_code,
-              country: data.country
-            
-            };
-            this.savedAddresses.push(newAddress);
-            this.selectedAddress = newAddress;
-            return true;
-          }
+          const newAddress = {
+            user_id: this.userId,
+            address_line1: data.address_line1,
+            address_line2: data.address_line2,
+            city: data.city,
+            province: data.province,
+            postal_code: data.postal_code,
+            country: data.country
+          };
+
+          this.http.post('http://localhost/user_api/address.php', newAddress)
+            .pipe(
+              catchError(error => {
+                console.error('Error adding address:', error);
+                this.showErrorToast('Failed to add address');
+                return throwError(error);
+              })
+            )
+            .subscribe({
+              next: (response: any) => {
+                console.log('Server response:', response);
+                if (response && (response.status === 201 || response.success)) {
+                  this.showToast('Address added successfully');
+                  this.loadSavedAddresses();
+                } else {
+                  this.showErrorToast('Failed to add address: ' + (response.message || 'Unknown error'));
+                }
+              }
+            });
+
+          return true;
         }
-      
+      }
     ]
   });
 
   await alert.present();
 }
+
+deleteAddress(addressId: number) {
+  if (this.userId) {
+    this.http.delete('http://localhost/user_api/address.php', {
+      body: { address_id: addressId, user_id: this.userId },
+      responseType: 'text'
+    }).pipe(
+      map(response => {
+        try {
+          return JSON.parse(response);
+        } catch (e) {
+          console.error('Error parsing response:', e);
+          return { status: 200, message: 'Address might have been deleted successfully' };
+        }
+      }),
+      catchError(this.handleError<any>('deleteAddress'))
+    ).subscribe({
+      next: (response: any) => {
+        if (response && (response.status === 200 || response.message.includes('successfully'))) {
+          this.showToast('Address deleted successfully');
+          this.loadSavedAddresses();
+        } else {
+          this.showErrorToast('Failed to delete address');
+        }
+      }
+    });
+  }
+}
+
+private handleError<T>(operation = 'operation', result?: T) {
+  return (error: any): Observable<T> => {
+    console.error(`${operation} failed:`, error);
+    
+    // If the error is actually a successful response
+    if (error instanceof HttpErrorResponse && error.status === 200) {
+      try {
+        const parsedResponse = JSON.parse(error.error.text);
+        if (parsedResponse.status === 200 || parsedResponse.message.includes('successfully')) {
+          return of(parsedResponse as T);
+        }
+      } catch (e) {
+        console.error('Error parsing successful response:', e);
+      }
+    }
+
+    // Let the app keep running by returning an empty result.
+    return of(result as T);
+  };
+}
+
   async showErrorToast(message: string) {
     const toast = await this.toastController.create({
       message: message,
@@ -501,9 +586,11 @@ async enterCustomQuantity(productId: number) {
         this.cartService.clearAllItems().subscribe({
           next: () => {
             console.log('Cart cleared successfully');
+            // The cart will be automatically updated via the subscription
           },
           error: (error) => {
             console.error('Error clearing cart:', error);
+            this.showToast('Failed to clear cart. Please try again.');
           }
         });
 
