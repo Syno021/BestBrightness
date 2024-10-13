@@ -8,13 +8,38 @@
   <!-- Search and Filter -->
   <ion-card class="custom-card">
     <ion-card-content>
-      <ion-searchbar placeholder="Search inventory items"></ion-searchbar>
+      <ion-searchbar 
+        placeholder="Search inventory items"
+        [(ngModel)]="searchQuery"
+        (ionChange)="onSearchChange($event)">
+      </ion-searchbar>
+      
       <ion-item>
-        <ion-label>Filter By</ion-label>
-        <ion-select placeholder="Select Filter">
-          <ion-select-option value="category">Category</ion-select-option>
-          <ion-select-option value="status">Status</ion-select-option>
-          <ion-select-option value="stock">Stock Level</ion-select-option>
+        <ion-label>Category</ion-label>
+        <ion-select [(ngModel)]="selectedCategory" (ionChange)="onCategoryChange($event)">
+          <ion-select-option value="">All Categories</ion-select-option>
+          <ion-select-option *ngFor="let category of categories" [value]="category.name">
+            {{ category.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Status</ion-label>
+        <ion-select [(ngModel)]="selectedStatus" (ionChange)="onStatusChange($event)">
+          <ion-select-option value="">All Status</ion-select-option>
+          <ion-select-option value="available">Available</ion-select-option>
+          <ion-select-option value="outofstock">Out of Stock</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Stock Level</ion-label>
+        <ion-select [(ngModel)]="selectedStockLevel" (ionChange)="onStockLevelChange($event)">
+          <ion-select-option value="">All Levels</ion-select-option>
+          <ion-select-option value="low">Low Stock (<75)</ion-select-option>
+          <ion-select-option value="medium">Medium Stock (75-150)</ion-select-option>
+          <ion-select-option value="high">High Stock (>150)</ion-select-option>
         </ion-select>
       </ion-item>
     </ion-card-content>
@@ -43,7 +68,7 @@
           <ion-col>Stock</ion-col>
           <ion-col>Actions</ion-col>
         </ion-row>
-        <ion-row *ngFor="let item of products">
+        <ion-row *ngFor="let item of filteredProducts">
           <ion-col>{{ item.product_id }}</ion-col>
           <ion-col>{{ item.name }}</ion-col>
           <ion-col>{{ item.category }}</ion-col>
@@ -95,7 +120,7 @@
       <ion-card-title>Slow/Fast Moving Items</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <ion-segment value="fast">
+      <ion-segment [(ngModel)]="selectedMovementView" (ionChange)="toggleMovementView($event.detail.value)">
         <ion-segment-button value="fast">
           <ion-label>Fast Moving</ion-label>
         </ion-segment-button>
@@ -103,10 +128,47 @@
           <ion-label>Slow Moving</ion-label>
         </ion-segment-button>
       </ion-segment>
+  
       <ion-list>
-        <ion-item *ngFor="let item of fastMoving">
-          <ion-label>{{ item.name }}</ion-label>
-          <ion-note slot="end">Stock: {{ item.stock_quantity }} units</ion-note>
+        <ng-container *ngIf="selectedMovementView === 'fast'">
+          <ion-item *ngFor="let item of fastMoving" class="movement-item">
+            <ion-label>
+              <h2>{{ item.name }}</h2>
+              <p>Category: {{ item.category }}</p>
+              <p class="movement-rate" [ngClass]="getMovementStatusClass(item.movement_rate)">
+                Movement Rate: {{ formatMovementRate(item.movement_rate) }}
+              </p>
+            </ion-label>
+            <ion-note slot="end">
+              Stock: {{ item.stock_quantity }} units
+              <br>
+              Sales: {{ item.sales_count || 0 }}
+            </ion-note>
+          </ion-item>
+        </ng-container>
+  
+        <ng-container *ngIf="selectedMovementView === 'slow'">
+          <ion-item *ngFor="let item of slowMoving" class="movement-item">
+            <ion-label>
+              <h2>{{ item.name }}</h2>
+              <p>Category: {{ item.category }}</p>
+              <p class="movement-rate" [ngClass]="getMovementStatusClass(item.movement_rate)">
+                Movement Rate: {{ formatMovementRate(item.movement_rate) }}
+              </p>
+            </ion-label>
+            <ion-note slot="end">
+              Stock: {{ item.stock_quantity }} units
+              <br>
+              Sales: {{ item.sales_count || 0 }}
+            </ion-note>
+          </ion-item>
+        </ng-container>
+  
+        <ion-item *ngIf="(selectedMovementView === 'fast' && fastMoving.length === 0) || 
+                         (selectedMovementView === 'slow' && slowMoving.length === 0)">
+          <ion-label class="ion-text-center">
+            No {{ selectedMovementView }} moving items found
+          </ion-label>
         </ion-item>
       </ion-list>
     </ion-card-content>

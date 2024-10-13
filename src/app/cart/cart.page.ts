@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CartService } from '../services/cart.service';
+import { PromotionService } from '../services/promotion.service'; 
 import { Router } from '@angular/router';
 import { AlertController,ToastController, AlertOptions } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
@@ -19,6 +20,7 @@ import { LoadingController} from '@ionic/angular';
 })
 export class CartPage implements OnInit {
   cartItems: any[] = [];
+  promotions: any[] = [];
   deliveryMethod: string = 'delivery';
   selectedAddress: any = null;
   savedAddresses: any[] = []; // Fetch this from a service or storage
@@ -26,14 +28,16 @@ export class CartPage implements OnInit {
   userEmail: string | null = null;
 
   subtotal: number = 0;
+  discountedSubtotal: number = 0;
   tax: number = 0;
   total: number = 0;
-  // toastController: any;
-  
+  discountedTotal: number = 0;
+
   private cartSubscription: Subscription | undefined;
 
   constructor(
-    private cartService: CartService, 
+    private cartService: CartService,
+    private promotionService: PromotionService, 
      private alertController: AlertController,
      private toastController: ToastController,
      private cd: ChangeDetectorRef,
@@ -45,6 +49,7 @@ export class CartPage implements OnInit {
 
   ngOnInit() {
     this.loadCart();
+    this.loadPromotions();
     this.getUserId();
     this.getUserEmail();
   }
@@ -74,8 +79,12 @@ export class CartPage implements OnInit {
   loadCart() {
     this.cartSubscription = this.cartService.getCart().subscribe({
       next: (items) => {
-        this.cartItems = items;
-        this.calculateTotals();
+        this.cartItems = items.map(item => ({
+          ...item,
+          price: this.ensureValidNumber(item.price),
+          quantity: this.ensureValidNumber(item.quantity)
+        }));
+        this.applyPromotions();
         console.log('Cart items:', this.cartItems);
         if (this.cartItems.length === 0) {
           this.showToast('Your cart is empty');
@@ -88,10 +97,56 @@ export class CartPage implements OnInit {
     });
   }
 
+  loadPromotions() {
+    this.promotionService.getPromotions().subscribe({
+      next: (promotions) => {
+        this.promotions = promotions.map(promo => ({
+          ...promo,
+          discount_percentage: this.ensureValidNumber(promo.discount_percentage)
+        }));
+        this.applyPromotions();
+      },
+      error: (error) => {
+        console.error('Error loading promotions:', error);
+      }
+    });
+  }
+
+  applyPromotions() {
+    this.cartItems.forEach(item => {
+      const promotion = this.promotions.find(p => p.product_id === item.product_id);
+      if (promotion) {
+        const discountAmount = item.price * (promotion.discount_percentage / 100);
+        item.discountedPrice = this.roundToTwo(item.price - discountAmount);
+        item.hasPromotion = true;
+        item.promotionName = promotion.name;
+      } else {
+        item.discountedPrice = item.price;
+        item.hasPromotion = false;
+      }
+    });
+    this.calculateTotals();
+  }
+
   calculateTotals() {
-    this.subtotal = this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    this.tax = this.subtotal * 0.15; // Assuming 15% tax rate
-    this.total = this.subtotal + this.tax;
+    this.subtotal = this.roundToTwo(
+      this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    );
+    this.discountedSubtotal = this.roundToTwo(
+      this.cartItems.reduce((sum, item) => sum + (item.discountedPrice * item.quantity), 0)
+    );
+    this.tax = this.roundToTwo(this.discountedSubtotal * 0.15); // Assuming 15% tax rate
+    this.total = this.roundToTwo(this.subtotal + this.tax);
+    this.discountedTotal = this.roundToTwo(this.discountedSubtotal + this.tax);
+  }
+
+  ensureValidNumber(value: any): number {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  }
+
+  roundToTwo(num: number): number {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
   }
 
   removeItem(productId: number) {
@@ -221,8 +276,12 @@ async enterCustomQuantity(productId: number) {
     const item = this.cartItems.find(i => i.product_id === productId);
     if (item && item.quantity > 1) {
       this.updateQuantity(productId, item.quantity - 1);
+    } else if (item && item.quantity === 1) {
+      // If the quantity is 1, removing the item instead of setting it to zero
+      this.removeItem(productId);
     }
   }
+  
 
   async increaseQuantity(productId: number) {
     const item = this.cartItems.find(i => i.product_id === productId);
@@ -342,21 +401,6 @@ async enterCustomQuantity(productId: number) {
   }
   
 
-  // processedToCheckout() {
-  //   if (this.deliveryMethod === 'delivery' && !this.selectedAddress) {
-  //     // Show an alert or toast message
-  //     console.log('Please select or add a delivery address');
-  //     return;
-
-  //   }
-  //   // Proceed with checkout logic
-  //   console.log('Proceeding to checkout', {
-  //     deliveryMethod: this.deliveryMethod,
-  //     address: this.selectedAddress,
-  //     total: this.total
-  //   });
-  // }
-
   async checkProductQuantities(): Promise<{isValid: boolean, invalidItems: {name: string, availableQuantity: number}[]}> {
     const invalidItems: {name: string, availableQuantity: number}[] = [];
     let isValid = true;
@@ -430,6 +474,7 @@ async enterCustomQuantity(productId: number) {
       const orderData = {
         user_id: this.userId,
         total_amount: this.total,
+        discounted_amount: this.discountedTotal,
         order_type: this.deliveryMethod,
         status: 'pending',
         items: this.cartItems,
@@ -451,6 +496,17 @@ async enterCustomQuantity(productId: number) {
         const firestoreOrderId = new Date().getTime().toString();
         const firestoreOrderData = { ...orderData, firestore_order_id: firestoreOrderId };
         await this.firestore.collection('orders').doc(firestoreOrderId).set(firestoreOrderData);
+
+
+        this.cartService.clearAllItems().subscribe({
+          next: () => {
+            console.log('Cart cleared successfully');
+          },
+          error: (error) => {
+            console.error('Error clearing cart:', error);
+          }
+        });
+
         const alert = await this.alertController.create({
           header: 'Order Placed',
           message: `Your order for R${this.total.toFixed(2)} has been placed successfully!`,

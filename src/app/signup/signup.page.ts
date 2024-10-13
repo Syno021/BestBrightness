@@ -10,19 +10,26 @@ import { Router } from '@angular/router'; // Import Router
 })
 export class SignupPage implements OnInit {
   isRegister = false;
+  showLoginPassword = false;
+  showRegisterPassword = false;
+  showRegisterConfirmPassword = false;
+
   userData = {
     username: '',
     first_name: '',
     last_name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    
   };
 
   loginData = {
     email: '',
     password: ''
   };
+
+  
 
   constructor(
     private http: HttpClient,
@@ -31,8 +38,23 @@ export class SignupPage implements OnInit {
     private router: Router // Inject Router
   ) {}
 
+
+
   ngOnInit() {
     // Initialize any necessary data or perform any required setup
+  }
+  togglePasswordVisibility(field: 'login' | 'register' | 'registerConfirm') {
+    switch (field) {
+      case 'login':
+        this.showLoginPassword = !this.showLoginPassword;
+        break;
+      case 'register':
+        this.showRegisterPassword = !this.showRegisterPassword;
+        break;
+      case 'registerConfirm':
+        this.showRegisterConfirmPassword = !this.showRegisterConfirmPassword;
+        break;
+    }
   }
 
   async submitForm() {
@@ -102,6 +124,7 @@ export class SignupPage implements OnInit {
         );
     }
   }
+  
 
   validateForm(): boolean {
     if (!this.userData.username || !this.userData.first_name || !this.userData.last_name || 
@@ -153,4 +176,6 @@ export class SignupPage implements OnInit {
       password: ''
     };
   }
+
+
 }

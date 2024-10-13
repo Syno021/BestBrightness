@@ -1,5 +1,26 @@
 /* src/app/cart/cart.page.scss */
 
+.promotion-tag {
+  background-color: #ff9800;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #999;
+  margin-right: 5px;
+}
+
+.discounted-price {
+  color: #4caf50;
+  font-weight: bold;
+}
+
 .cart-container {
     max-width: 800px;
     margin: 0 auto;

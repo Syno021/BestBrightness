@@ -39,10 +39,10 @@ ORDER TABLE
 
 CREATE TABLE ORDERS (
     order_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT,
+    user_id INT NOT NULL,
     total_amount DECIMAL(10, 2) NOT NULL,
     order_type VARCHAR(100),
-    status ENUM('pending', 'completed', 'canceled') NOT NULL,
+    status VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES USERS(user_id)
@@ -166,3 +166,12 @@ CREATE TABLE categories (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+
+CREATE TABLE ORDER_STATUS_HISTORY (
+    history_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT NOT NULL,
+    old_status VARCHAR(50) NOT NULL,
+    new_status VARCHAR(50) NOT NULL,
+    changed_at DATETIME NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES ORDERS(order_id)
+);

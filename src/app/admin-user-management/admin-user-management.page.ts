@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { IonModal } from '@ionic/angular';
+import { IonModal, LoadingController } from '@ionic/angular';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ToastController, AlertController } from '@ionic/angular';
 
@@ -42,7 +42,8 @@ export class AdminUserManagementPage implements OnInit {
   constructor(
     private http: HttpClient,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private loadingController: LoadingController,
   ) {}
 
   ngOnInit() {
@@ -68,18 +69,20 @@ export class AdminUserManagementPage implements OnInit {
         first_name: this.firstName,
         last_name: this.lastName,
         email: this.email,
-        password: username, // Password same as username
+        password: username,
         role: this.role
       };
-      console.log(newUser);
 
-      this.http.post<{status: number, message: string}>('http://localhost/user_api/register.php', newUser)
+      this.http.post<{status: number, message: string, user_id: number}>('http://localhost/user_api/register.php', newUser)
         .subscribe(async (response) => {
           if (response.status === 1) {
             await this.presentToast('User added successfully', 'success');
             this.dismissModal();
-            this.clearForm(); // Clear form after submission
-            this.fetchUsers(); // Refresh user list
+            this.clearForm();
+            this.fetchUsers();
+            
+            // Send email to the new user
+            await this.sendUserCreationEmail(newUser, response.user_id);
           } else {
             await this.presentToast('Error: ' + response.message, 'danger');
           }
@@ -87,6 +90,53 @@ export class AdminUserManagementPage implements OnInit {
     } else {
       await this.presentToast('Please fill all the fields', 'danger');
     }
+  }
+
+  async sendUserCreationEmail(user: any, userId: number): Promise<void> {
+    const loader = await this.loadingController.create({
+      message: 'Sending Email...',
+      cssClass: 'custom-loader-class'
+    });
+    await loader.present();
+
+    const url = "http://localhost/user_api/send_email.php";
+    const subject = "Welcome to Our System";
+    const body = `
+      Dear ${user.first_name} ${user.last_name},
+
+      Welcome to our system! Your account has been created successfully.
+
+      Here are your account details:
+      Username: ${user.username}
+      Role: ${user.role}
+      Email: ${user.email}
+
+      Your password is the same as the username, please login to the system to change to a safer and secure password.
+
+      Please keep this information safe. You can use your username to log in to the system.
+
+      If you have any questions or need assistance, please don't hesitate to contact us.
+
+      Best regards,
+      The Admin Team
+    `;
+    
+    const formData = new FormData();
+    formData.append('recipient', user.email);
+    formData.append('subject', subject);
+    formData.append('body', body);
+
+    this.http.post(url, formData).subscribe(
+      async (response) => {
+        loader.dismiss();
+        await this.presentToast('Welcome email sent successfully!', 'success');
+      },
+      (error) => {
+        loader.dismiss();
+        console.error('Error sending email:', error);
+        this.presentToast('Failed to send welcome email. Please try again.', 'danger');
+      }
+    );
   }
 
   // Method to present a toast
