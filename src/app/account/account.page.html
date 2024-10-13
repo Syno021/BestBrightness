@@ -1,4 +1,3 @@
-<!-- account.page.html -->
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Account</ion-title>
@@ -60,10 +59,41 @@
       </ion-card-content>
     </ion-card>
 
-    <div *ngIf="!currentUser && !loading" class="ion-text-center ion-padding">
-      <h2>Not Logged In</h2>
-      <p>Please log in to view your account information.</p>
-      <ion-button routerLink="/login">Go to Login</ion-button>
-    </div>
+    <!-- Orders Section -->
+<ion-card *ngIf="orders.length > 0">
+  <ion-card-header>
+    <ion-card-title>Your Orders</ion-card-title>
+  </ion-card-header>
+  
+  <ion-card-content>
+    <ion-list>
+      <ion-item *ngFor="let order of orders">
+        <ion-label>
+          <h2>Order #{{ order.order_id }} - {{ order.status }}</h2>
+          <p>Type: {{ order.order_type }}</p>
+          <p>Amount: ${{ order.total_amount }}</p>
+          <p>Created At: {{ order.created_at | date:'short' }}</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-card-content>
+</ion-card>
+
+<!-- No Orders Found -->
+<div *ngIf="orders.length === 0 && !ordersLoading && !ordersError" class="ion-text-center ion-padding">
+  <h2>No Orders Found</h2>
+  <p>You haven't placed any orders yet.</p>
+</div>
+
+<!-- Error Section -->
+<div *ngIf="ordersError" class="ion-text-center ion-padding">
+  <ion-text color="danger">
+    <p>{{ ordersError }}</p>
+  </ion-text>
+</div>
+
+<!-- Loading Spinner -->
+<ion-spinner *ngIf="ordersLoading" class="ion-padding"></ion-spinner>
+
   </div>
 </ion-content>
