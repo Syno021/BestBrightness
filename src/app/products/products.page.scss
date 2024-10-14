@@ -140,3 +140,21 @@ ion-badge {
     display: none;
   }
 }
+.desktop-nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  
+  ion-button {
+    --color: white;
+    font-weight: 500;
+    text-transform: none;
+    font-size: 16px;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
