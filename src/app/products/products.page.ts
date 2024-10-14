@@ -76,6 +76,7 @@ export class ProductsPage implements OnInit {
         this.products = data.map(product => ({ ...product, quantity: 1 }));
         this.filteredProducts = this.products;
         this.applyFilters();
+        this.loadPromotions();
         this.extractCategories();
         console.log('Products loaded:', this.products);
       },

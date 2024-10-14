@@ -53,7 +53,8 @@
               <ion-badge color="danger" *ngIf="product.isSale">SALE</ion-badge>
               <ion-badge color="primary" *ngIf="product.hasPromotion">{{ product.promotionName }}</ion-badge>
             </ion-card-subtitle>
-            <ion-card-title>{{ product.name }}</ion-card-title>
+            <ion-card-title></ion-card-title>
+            <p><strong>{{ product.name }}</strong></p>
             <p>{{ product.description }}</p>
           </ion-card-header>
           <ion-card-content>
