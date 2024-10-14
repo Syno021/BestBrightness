@@ -38,6 +38,10 @@ export class AccountPage implements OnInit {
   ordersLoading: boolean = true;
   error: string | null = null;
   ordersError: string | null = null;
+  selectedStatus: string = 'all';
+  showAllOrders: boolean = false;
+  allOrders: Order[] = [];
+  displayedOrders: Order[] = [];
   private apiUrl = 'http://localhost/user_api/login.php';
   private ordersApiUrl = 'http://localhost/user_api/orders.php';
 
@@ -97,37 +101,53 @@ export class AccountPage implements OnInit {
     if (!this.userId) return;
   
     this.ordersLoading = true;
-    const userIdNumber = Number(this.userId);  // Convert to number
-  
-    console.log('Fetching orders for userId:', userIdNumber);  // Add this log
-  
-    this.http.get<{ orderData: Order[] }>(`${this.ordersApiUrl}?user_id=${this.userId}`).pipe(
-      map(response => {
-        console.log('Raw API response:', response);  // Log the full API response
-        const filteredOrders = response.orderData.filter(order => order.user_id === userIdNumber);
-        console.log('Filtered orders:', filteredOrders);  // Log filtered orders
-        return filteredOrders;
-      }),
-      catchError(error => {
-        console.error('Error fetching orders:', error);
-        this.ordersError = 'Failed to load orders';
-        return of([]); // Return an empty array on error
-      })
-    ).subscribe({
-      next: (orders) => {
-        this.orders = orders;
-        if (this.orders.length === 0) {
-          console.log('No orders found for this user');
-          this.ordersError = 'No Orders Found';
+    this.http.get<{ orderData: Order[] }>(`${this.ordersApiUrl}?user_id=${this.userId}`).subscribe({
+      next: async (response) => {
+        console.log('Raw API response:', response);
+        this.allOrders = response.orderData;
+        this.filterOrders();
+        this.ordersLoading = false;
+        
+        if (this.allOrders.length === 0) {
+          this.ordersError = 'No orders found for this user';
+          await this.presentToast('No orders found', 'warning');
+        } else {
+          await this.presentToast('Orders loaded successfully', 'success');
         }
-        this.ordersLoading = false;
       },
-      error: (error) => {
-        console.error('Error processing orders:', error);
+      error: async (error: HttpErrorResponse) => {
         this.ordersError = 'Failed to load orders';
         this.ordersLoading = false;
+        
+        let errorMessage = 'An error occurred while loading orders';
+        if (error.status === 404) {
+          errorMessage = 'Orders not found';
+        } else if (error.status === 0) {
+          errorMessage = 'Unable to connect to the server. Please check if the server is running.';
+        }
+        
+        await this.presentToast(errorMessage, 'danger');
+        console.error('Error fetching orders:', error);
       }
     });
+  }
+
+  filterOrders() {
+    let filteredOrders = this.selectedStatus === 'all' 
+      ? this.allOrders 
+      : this.allOrders.filter(order => order.status === this.selectedStatus);
+    
+    this.displayedOrders = this.showAllOrders ? filteredOrders : filteredOrders.slice(0, 3);
+  }
+
+  onStatusChange() {
+    this.showAllOrders = false;
+    this.filterOrders();
+  }
+
+  toggleShowAllOrders() {
+    this.showAllOrders = !this.showAllOrders;
+    this.filterOrders();
   }
   
   async logout() {
