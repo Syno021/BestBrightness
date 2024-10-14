@@ -1,4 +1,3 @@
-<!-- account.page.html -->
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Account</ion-title>
@@ -60,10 +59,54 @@
       </ion-card-content>
     </ion-card>
 
-    <div *ngIf="!currentUser && !loading" class="ion-text-center ion-padding">
-      <h2>Not Logged In</h2>
-      <p>Please log in to view your account information.</p>
-      <ion-button routerLink="/login">Go to Login</ion-button>
+    <!-- Orders Section -->
+    <ion-card *ngIf="allOrders.length > 0">
+      <ion-card-header>
+        <ion-card-title>Your Orders</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-select [(ngModel)]="selectedStatus" (ionChange)="onStatusChange()">
+          <ion-select-option value="all">All</ion-select-option>
+          <ion-select-option value="pending">Pending</ion-select-option>
+          <ion-select-option value="order-processed">Processed</ion-select-option>
+          <ion-select-option value="checked-out">Checked Out</ion-select-option>
+        </ion-select>
+
+        <ion-list>
+          <ion-item *ngFor="let order of displayedOrders">
+            <ion-label>
+              <h2>Order #{{ order.order_id }} - {{ order.status }}</h2>
+              <p>Type: {{ order.order_type }}</p>
+              <p>Amount: R{{ order.total_amount }}</p>
+              <p>Created At: {{ order.created_at | date:'short' }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+        <ion-button *ngIf="!showAllOrders && allOrders.length > 3" expand="block" fill="clear" (click)="toggleShowAllOrders()">
+          Show More
+        </ion-button>
+        <ion-button *ngIf="showAllOrders" expand="block" fill="clear" (click)="toggleShowAllOrders()">
+          Show Less
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- No Orders Found -->
+    <div *ngIf="allOrders.length === 0 && !ordersLoading && !ordersError" class="ion-text-center ion-padding">
+      <h2>No Orders Found</h2>
+      <p>You haven't placed any orders yet.</p>
     </div>
+
+    <!-- Error Section -->
+    <div *ngIf="ordersError" class="ion-text-center ion-padding">
+      <ion-text color="danger">
+        <p>{{ ordersError }}</p>
+      </ion-text>
+    </div>
+
+    <!-- Loading Spinner -->
+    <ion-spinner *ngIf="ordersLoading" class="ion-padding"></ion-spinner>
   </div>
 </ion-content>

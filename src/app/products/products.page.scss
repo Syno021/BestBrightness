@@ -74,6 +74,14 @@ ion-badge {
   text-align: center;
 }
 
+.compact-card img {
+  height: 120px;
+  width: 100%;
+  object-fit: contain; /* Ensures the image fits within the card without cropping */
+  object-position: center; /* Centers the image within the card */
+  background-color: #f4f5f8; /* Optional: Adds a background color behind the image */
+}
+
 
 .promo-card {
   margin-bottom: 16px;

@@ -142,33 +142,66 @@ else if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     }
     
     $status = isset($data['status']) ? $data['status'] : null;
+    $previousStatus = isset($data['previousStatus']) ? $data['previousStatus'] : null;
     
     if (!$status) {
         die(json_encode(array("success" => false, "message" => "Status is required")));
     }
     
-    // Validate status
-    $valid_statuses = ['Pending', 'Shipped', 'Delivered', 'Cancelled'];
-    if (!in_array($status, $valid_statuses)) {
-        die(json_encode(array("success" => false, "message" => "Invalid status")));
-    }
+    // Start transaction
+    $conn->begin_transaction();
     
-    $sql = "UPDATE ORDERS SET status = ? WHERE order_id = ?";
-    $stmt = $conn->prepare($sql);
-    
-    $stmt->bind_param("si", $status, $order_id);
-    
-    if ($stmt->execute()) {
-        if ($stmt->affected_rows > 0) {
-            echo json_encode(array("success" => true, "message" => "Order updated successfully"));
-        } else {
-            echo json_encode(array("success" => false, "message" => "No changes made. Order status might be the same or order might not exist."));
+    try {
+        // Update order status
+        $sql = "UPDATE ORDERS SET status = ? WHERE order_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("si", $status, $order_id);
+        $stmt->execute();
+        
+        // If new status is "order-processed" and previous status wasn't, update product quantities
+        if ($status === 'order-processed' && $previousStatus !== 'order-processed') {
+            // Get order items
+            $items_sql = "SELECT product_id, quantity FROM ORDER_ITEMS WHERE order_id = ?";
+            $items_stmt = $conn->prepare($items_sql);
+            $items_stmt->bind_param("i", $order_id);
+            $items_stmt->execute();
+            $items_result = $items_stmt->get_result();
+            
+            while ($item = $items_result->fetch_assoc()) {
+                // Update product quantity
+                $update_product_sql = "UPDATE products SET stock_quantity = stock_quantity - ? WHERE product_id = ?";
+                $update_product_stmt = $conn->prepare($update_product_sql);
+                $update_product_stmt->bind_param("ii", $item['quantity'], $item['product_id']);
+                $update_product_stmt->execute();
+            }
         }
-    } else {
-        echo json_encode(array("success" => false, "message" => "Failed to update order: " . $stmt->error));
+        // If previous status was "order-processed" and new status isn't, restore product quantities
+        else if ($previousStatus === 'order-processed' && $status !== 'order-processed') {
+            // Get order items
+            $items_sql = "SELECT product_id, quantity FROM ORDER_ITEMS WHERE order_id = ?";
+            $items_stmt = $conn->prepare($items_sql);
+            $items_stmt->bind_param("i", $order_id);
+            $items_stmt->execute();
+            $items_result = $items_stmt->get_result();
+            
+            while ($item = $items_result->fetch_assoc()) {
+                // Update product quantity
+                $update_product_sql = "UPDATE products SET stock_quantity = stock_quantity + ? WHERE product_id = ?";
+                $update_product_stmt = $conn->prepare($update_product_sql);
+                $update_product_stmt->bind_param("ii", $item['quantity'], $item['product_id']);
+                $update_product_stmt->execute();
+            }
+        }
+        
+        // Commit transaction
+        $conn->commit();
+        
+        echo json_encode(array("success" => true, "message" => "Order status updated successfully"));
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        echo json_encode(array("success" => false, "message" => "Failed to update order: " . $e->getMessage()));
     }
-    
-    $stmt->close();
 }
 // Handle DELETE request for deleting an order
 else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
